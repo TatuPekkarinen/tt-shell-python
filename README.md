@@ -14,13 +14,12 @@ Commands starting with ./ are treated as executables located in the working dire
 
 Part of the codecrafters challenge but I plan to make this my own thing. No AI usage at all other than for README
 
-            STARTER CODE PROVIDED BY CODECRAFTERS
+CODECRAFTERS STARTER CODE
             
             import sys
             
-            
             def main():
-                # TODO: Uncomment the code below to pass the first stage
-                # sys.stdout.write("$ ")
                 sys.stdout.write("$ ")
-                pass
+            
+            if __name__ == "__main__":
+                main()
