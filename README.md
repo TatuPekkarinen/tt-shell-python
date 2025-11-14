@@ -16,11 +16,11 @@ Part of the codecrafters challenge but I plan to make this my own thing. No AI u
 
 STARTER CODE PROVIDED BY CODECRAFTERS
 
-      import sys
-      
-      def main():
-          sys.stdout.write("$ ")
-          pass
-      
-      if __name__ == "__main__":
-          main()
+            import sys
+            
+            
+            def main():
+                # TODO: Uncomment the code below to pass the first stage
+                # sys.stdout.write("$ ")
+                sys.stdout.write("$ ")
+                pass
