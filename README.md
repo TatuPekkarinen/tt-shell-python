@@ -4,12 +4,35 @@ This project is a small command-line shell written in Python. It supports a few 
 
 Initially a codecrafters challenge I did without AI that includes a couple of differences to the initial challenge. Mostly made for me to tinker with like adding colorization making the file run commands as I actually need them to be alongside other commands that will be added.
 
-LIST OF USABLE COMMANDS
+LIST OF USABLE COMMANDS WITH EXAMPLES
 
     Exit - exits the program
+        $ exit
+        PS C:\Users\-\tt-shell\tt-shell> 
+
     Type - tells if the file is in the directory or if the command is builtin
-    Echo - echoes the text
-    Prefix "." - executes a given file (for example .cmd)
+        $ type cmd
+        cmd is C:\Windows\system32\cmd.EXE
+        
+        $ type echo
+        echo is a shell builtin
+
+    Echo - echoes the text (example : echo Hello World!)
+        $ echo Hello World!
+        Hello World!
+
+    web - open websites
+        $ web facebook.com
+        Accessing website / facebook.com
+        (Opens Facebook.com)
+
+    Prefix "." - executes a given file
+        $.cmd
+        Opening the file / C:\Windows\system32\cmd.EXE
+        Microsoft Windows [Version 10.0.26200.7171]
+        (c) Microsoft Corporation. Kaikki oikeudet pidätetään.
+
+        (cmd) C:\Users\-\tt-shell\tt-shell>
             
 CODECRAFTERS STARTER CODE
             
