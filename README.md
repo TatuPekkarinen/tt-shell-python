@@ -39,6 +39,12 @@ LIST OF USABLE COMMANDS WITH EXAMPLES
     python - outputs current python version
         $ python
         3.14.0 (tags/v3.14.0:ebf955d, Oct  7 2025, 10:15:03) [MSC v.1944 64 bit (AMD64)]
+    
+    env - prints environment variables
+        $ env
+        (environment variables)
+        $ env PATH
+        (PATH environment variable)
             
 CODECRAFTERS STARTER CODE
             
