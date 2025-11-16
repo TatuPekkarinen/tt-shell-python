@@ -106,6 +106,8 @@ def cmdexec():
             type_cmd(cmdSpl, cmd)
         case "web":
             open_web(cmdSpl, cmd)
+        case "python":
+            print(sys.version)
         case _:
             if  file_prefix == 0:
                 exec_file(execSpl)
