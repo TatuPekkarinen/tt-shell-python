@@ -64,6 +64,8 @@ $ python
 ```
 $ env
 (environment variables)
+```
+```
 $ env PATH
 (PATH environment variable)
 ```        
