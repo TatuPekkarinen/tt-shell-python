@@ -64,11 +64,7 @@ $ python
 ```
 $ env
 (environment variables)
-```
-```
-$ env PATH
-(PATH environment variable)
-```        
+```    
 
 ### CODECRAFTERS STARTER CODE ###
 
