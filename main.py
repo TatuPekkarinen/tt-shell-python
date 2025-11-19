@@ -13,25 +13,29 @@ TITLE2 = '\033[95m'
 WARNING = '\033[91m'
 RESET = '\033[0m'
 
-commands = {"exit", "echo", "type", "web", "python", "env"}
+commands = {"exit", "echo", "type", "web", "python", "env", "file"}
 
 #executing file
-def exec_file(execSpl):
-    def not_found(execSpl):
-        print(f"{WARNING}{execSpl[1]}file not found in the PATH.{RESET}")
+def exec_file(cmdSpl):
+    def not_found(cmdSpl):
+        print(f"{WARNING}{cmdSpl[1]}file not found in the PATH.{RESET}")
         return
     
-    execPath = shutil.which(execSpl[1])
-
+    if len(cmdSpl) == 1:
+        cmdSpl.append(" ")
+        exec_file(cmdSpl) 
+        return
+        
+    execPath = shutil.which(cmdSpl[1])
     if os.access(str(execPath), os.X_OK) == True:
             print(f"{GREEN}Opening the file /{RESET}", execPath)
             time.sleep(1)
             subprocess.run(execPath)
 
     elif os.access(str(execPath), os.X_OK) == False:
-        not_found(execSpl)
+        not_found(cmdSpl)
     else:
-        not_found(execSpl)
+        not_found(cmdSpl)
 
 #opens websites
 def open_web(cmdSpl, cmd):
@@ -45,15 +49,8 @@ def open_web(cmdSpl, cmd):
 #Checking environment variables   
 def environ_check(cmdSpl, cmd):
     envar = os.environ
-    if cmd == "env": 
-        pprint.pprint(dict(envar), width=1) 
-        return
-    elif cmdSpl[1] == "PATH":
-        envar = os.environ['PATH']
-        pprint.pprint(str(envar)) 
-        return
-    else: error(cmdSpl, cmd)
-
+    pprint.pprint(dict(envar), width=5, depth=5) 
+    return
 
 #error message
 def error(cmd, cmdSpl):
@@ -102,10 +99,7 @@ def type_cmd(cmdSpl, cmd):
 def cmdexec():
     sys.stdout.write(f"{GREEN}$ {RESET}")
     cmd = input()
-    file_prefix = cmd.find(".")
     cmdSpl = cmd.split(" ")
-    execSpl = cmd.split(".")
-
     match cmdSpl[0]:
         case "":
             return
@@ -121,13 +115,10 @@ def cmdexec():
             print(sys.version)
         case "env":
             environ_check(cmdSpl, cmd)
+        case "file":
+            exec_file(cmdSpl)
         case _:
-            if  file_prefix == 0:
-                exec_file(execSpl)
-                return
-            elif cmd not in commands:
-                error(cmd, cmdSpl)
-            else: error(cmd, cmdSpl)
+            error(cmd, cmdSpl)
 
 def main():
     date = datetime.datetime.now()
