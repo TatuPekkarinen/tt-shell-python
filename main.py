@@ -34,12 +34,11 @@ def exec_file(cmdSpl):
 
     elif os.access(str(execPath), os.X_OK) == False:
         not_found(cmdSpl)
-    else:
-        not_found(cmdSpl)
+    else: not_found(cmdSpl)
 
 #opens websites
 def open_web(cmdSpl, cmd):
-    if cmd == "web":
+    if len(cmdSpl) == 1:
         error(cmd, cmdSpl)
     else:
         print(f"{GREEN}Accessing website{RESET} / {cmdSpl[1]}")
@@ -49,9 +48,8 @@ def open_web(cmdSpl, cmd):
 #Checking environment variables   
 def environ_check(cmdSpl, cmd):
     envar = os.environ
-    pprint.pprint(dict(envar), width=1) 
+    pprint.pprint(dict(envar), width=10, indent=10) 
     return
-
 
 #error message
 def error(cmd, cmdSpl):
@@ -82,7 +80,7 @@ def exit_cmd(cmdSpl):
 
 #type command
 def type_cmd(cmdSpl, cmd):
-    if cmd == "type":
+    if len(cmdSpl) == 1:
         error(cmd, cmdSpl)
         return
     
@@ -92,30 +90,29 @@ def type_cmd(cmdSpl, cmd):
         return  
     elif cmdSpl[1] != commands and not type_file:
         error(cmd, cmdSpl)            
-    else: 
-        print(cmdSpl[1],"is", type_file)
+    else: print(cmdSpl[1],"is", type_file)
     return
 
 #executing commands
 def cmdexec():
     sys.stdout.write(f"{GREEN}$ {RESET}")
     cmd = input()
-    cmdSpl = cmd.split(" ")
+    cmdSpl = cmd.split(" ") 
     match cmdSpl[0]:
         case "":
             return
         case "echo":
             echo_cmd(cmdSpl)
         case "exit":
-            exit_cmd(cmdSpl)
+            exit_cmd(cmdSpl)   
         case "type":
-            type_cmd(cmdSpl, cmd)
+            type_cmd(cmdSpl, cmd)       
         case "web":
             open_web(cmdSpl, cmd)
         case "python":
             print(sys.version)
         case "env":
-            environ_check(cmdSpl, cmd)
+            environ_check(cmdSpl, cmd)            
         case "file":
             exec_file(cmdSpl)
         case _:
