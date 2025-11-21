@@ -14,7 +14,7 @@ commands = {"exit", "echo", "type", "web", "python", "env", "file"}
 #executing file
 def exec_file(cmdSpl):
     def not_found(cmdSpl):
-        print(f"{WARNING}{cmdSpl[1]}file not found in the PATH.{RESET}")
+        print(f"{WARNING}{cmdSpl[1]} file not found in the PATH.{RESET}")
         return
     
     if len(cmdSpl) == 1:
@@ -35,7 +35,8 @@ def exec_file(cmdSpl):
 #opens websites
 def open_web(cmdSpl, cmd):
     if len(cmdSpl) == 1:
-        error(cmd, cmdSpl)
+        cmdSpl.append('http://localhost')
+        open_web(cmdSpl, cmd)
     else:
         print(f"{GREEN}Accessing website{RESET} / {cmdSpl[1]}")
         webbrowser.open(cmdSpl[1])
@@ -50,18 +51,18 @@ def environ_check(cmdSpl, cmd):
 #error message
 def error(cmd, cmdSpl):
     print(f"{WARNING}", end="")
-
     match cmdSpl[0]:
         case "type":
             print(f"{cmd}: not found",sep="")
         case _:
             print(f"{cmd}: command not found")
-
+            
     print(f"{RESET}", end="")
     return
 
 #echo command
 def echo_cmd(cmdSpl):
+    
     print(* cmdSpl[1:])
     return
 
@@ -79,12 +80,15 @@ def type_cmd(cmdSpl, cmd):
     if len(cmdSpl) == 1:
         error(cmd, cmdSpl)
         return
+    
     type_file = shutil.which(cmdSpl[1])
     if cmdSpl[1] in commands:
         print(cmdSpl[1], "is a shell builtin")
         return  
+    
     elif cmdSpl[1] != commands and not type_file:
-        error(cmd, cmdSpl)            
+        error(cmd, cmdSpl)    
+        
     else: print(cmdSpl[1],"is", type_file)
     return
 
@@ -93,23 +97,24 @@ def cmdexec():
     sys.stdout.write(f"{GREEN}$ {RESET}")
     cmd = input()
     cmdSpl = cmd.split(" ") 
+    
     match cmdSpl[0]:
         case "":
             return
+        case "type":
+            type_cmd(cmdSpl, cmd)
         case "echo":
             echo_cmd(cmdSpl)
-        case "exit":
-            exit_cmd(cmdSpl)   
-        case "type":
-            type_cmd(cmdSpl, cmd)       
+        case "file":
+            exec_file(cmdSpl)       
         case "web":
             open_web(cmdSpl, cmd)
+        case "env":
+            environ_check(cmdSpl, cmd)       
         case "python":
             print(sys.version)
-        case "env":
-            environ_check(cmdSpl, cmd)            
-        case "file":
-            exec_file(cmdSpl)
+        case "exit":
+            exit_cmd(cmdSpl)   
         case _:
             error(cmd, cmdSpl)
 
