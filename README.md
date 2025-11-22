@@ -47,7 +47,7 @@ Accessing website / facebook.com
 $ file cmd
 Opening the file / C:\Windows\system32\cmd.EXE
 Microsoft Windows [Version 10.0.26200.7171]
-(c) Microsoft Corporation. Kaikki oikeudet pidätetään.'
+(c) Microsoft Corporation. Kaikki oikeudet pidätetään.
 
 (Opens Windows commandline)
 ```       
