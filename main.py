@@ -42,7 +42,7 @@ def open_web(cmdSpl, cmd):
         webbrowser.open(cmdSpl[1])
         return
 
-#Checking environment variables   
+#checking environment variables   
 def environ_check():
     envar = os.environ
     pprint.pprint(dict(envar), width=5, indent=5) 
@@ -62,8 +62,7 @@ def error(cmd, cmdSpl):
 
 #echo command
 def echo_cmd(cmdSpl):
-    
-    print(* cmdSpl[1:])
+    print(*cmdSpl[1:])
     return
 
 #exit command
