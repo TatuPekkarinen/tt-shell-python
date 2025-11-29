@@ -10,10 +10,12 @@ TITLE2 = '\033[95m'
 WARNING = '\033[91m'
 RESET = '\033[0m'
 
-commands = {"exit", "echo", "type", "web", "python", "env", "file", "con"}
+commands = {"exit", "echo", "type", "web", "python", "env", "file", "con", "history"}
 
+#history stores as a global list
 history = []
 
+#connectivity tester
 def connection_scan(command_split, command):
     match len(command_split):
         case 3:
@@ -21,6 +23,12 @@ def connection_scan(command_split, command):
             sock.settimeout(10)
             HOST = socket.gethostbyname(str(command_split[1]))
             PORT = int(command_split[2])
+
+            if not (0 <= PORT <= 65535):
+                print(f"{WARNING}Port invalid{RESET} / (Not in range 0/65535)")
+                sock.close()
+                return
+
             status = sock.connect_ex((HOST, PORT))
 
             if status == 0:
@@ -35,7 +43,7 @@ def connection_scan(command_split, command):
 #executing file
 def execute_file(command_split):
     def not_found(command_split):
-        print(f"{WARNING}{command_split[1]} file not found in the PATH.{RESET}")
+        print(f"{WARNING}{command_split[1]} file not found in the PATH{RESET}")
         return
     
     if len(command_split) < 2:
@@ -45,6 +53,7 @@ def execute_file(command_split):
         
     execute_path = shutil.which(command_split[1])
     if os.access(str(execute_path), os.X_OK) == True:
+            input(f"{WARNING}Opening file / press enter at your own risk! {RESET}")
             print(f"{GREEN}Opening the file /{RESET}", execute_path)
             time.sleep(1)
             subprocess.run(execute_path)
@@ -55,7 +64,7 @@ def execute_file(command_split):
 
 #curl wrapper
 def curl_command(command_split):
-    input(f"{WARNING}curl system command / press enter at your own risk!{RESET}")
+    input(f"{WARNING}curl system command / press enter at your own risk! {RESET}")
 
     if len(command_split) < 2:
         command_split.append(" ")
@@ -65,7 +74,8 @@ def curl_command(command_split):
 
 #opens websites
 def open_website(command_split, command):
-    input(f"{WARNING}Entering website / press enter at your own risk!{RESET}")
+    input(f"{WARNING}entering website / press enter at your own risk! {RESET}")
+    
     if len(command_split) < 2:
         command_split.append('http://localhost')
         open_website(command_split, command)
