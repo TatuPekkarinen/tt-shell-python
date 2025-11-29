@@ -10,22 +10,24 @@ TITLE2 = '\033[95m'
 WARNING = '\033[91m'
 RESET = '\033[0m'
 
-commands = {"exit", "echo", "type", "web", "python", "env", "file", "port"}
+commands = {"exit", "echo", "type", "web", "python", "env", "file", "con"}
 
-def connection_scan(cmdSpl):
-    s = socket.socket(socket.AF_INET, socket. SOCK_STREAM)
-    s.settimeout(10)
-    HOST = socket.gethostbyname(str(cmdSpl[1]))
-    status = s.connect_ex((HOST, int(cmdSpl[2])))
+def connection_scan(cmdSpl, cmd):
+    match len(cmdSpl):
+        case 3:
+            s = socket.socket(socket.AF_INET, socket. SOCK_STREAM)
+            s.settimeout(10)
+            HOST = socket.gethostbyname(str(cmdSpl[1]))
+            status = s.connect_ex((HOST, int(cmdSpl[2])))
 
-    if status == 0:
-        print(f"{cmdSpl[1]} / {GREEN}RESPONDED{RESET}")
-    elif status > 0: 
-        print(f"{cmdSpl[1]} / {WARNING}UNREACHABLE{RESET}")
-    else: 
-        print(f"{cmdSpl[1]} / {WARNING}UNREACHABLE{RESET}")
-    s.close()
-
+            if status == 0:
+                print(f"{cmdSpl[1]} / {GREEN}RESPONDED{RESET}")
+            elif status > 0: 
+                print(f"{cmdSpl[1]} / {WARNING}UNREACHABLE{RESET}")
+            else: 
+                print(f"{cmdSpl[1]} / {WARNING}UNREACHABLE{RESET}")
+            s.close()
+        case _: error(cmd, cmdSpl)
 
 #executing file
 def exec_file(cmdSpl):
@@ -60,6 +62,7 @@ def curl(cmdSpl):
 
 #opens websites
 def open_web(cmdSpl, cmd):
+    input(f"{WARNING}Entering website / press enter at your own risk!{RESET}")
     if len(cmdSpl) < 2:
         cmdSpl.append('http://localhost')
         open_web(cmdSpl, cmd)
@@ -137,7 +140,7 @@ def cmdexec():
         case "env":
             environ_check()    
         case "con":
-            connection_scan(cmdSpl)   
+            connection_scan(cmdSpl, cmd)   
         case "python":
             print(sys.version)
         case "curl":
