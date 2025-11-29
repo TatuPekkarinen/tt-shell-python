@@ -88,6 +88,28 @@ The document has moved
 </BODY></HTML>
 ```    
 
+### history / history clear - access past command history ###
+
+```
+$ 1
+1: command not found
+$ 2
+2: command not found
+$ 3
+3: command not found
+$ 4
+4: command not found
+$ history
+1
+2
+3
+4
+history
+$ history clear
+$ history
+history
+```
+
 ### CODECRAFTERS STARTER CODE ###
 
 ```            

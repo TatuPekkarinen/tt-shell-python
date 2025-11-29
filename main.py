@@ -12,149 +12,170 @@ RESET = '\033[0m'
 
 commands = {"exit", "echo", "type", "web", "python", "env", "file", "con"}
 
-def connection_scan(cmdSpl, cmd):
-    match len(cmdSpl):
+history = []
+
+def connection_scan(command_split, command):
+    match len(command_split):
         case 3:
-            s = socket.socket(socket.AF_INET, socket. SOCK_STREAM)
-            s.settimeout(10)
-            HOST = socket.gethostbyname(str(cmdSpl[1]))
-            status = s.connect_ex((HOST, int(cmdSpl[2])))
+            sock = socket.socket(socket.AF_INET, socket. SOCK_STREAM)
+            sock.settimeout(10)
+            HOST = socket.gethostbyname(str(command_split[1]))
+            PORT = int(command_split[2])
+            status = sock.connect_ex((HOST, PORT))
 
             if status == 0:
-                print(f"{cmdSpl[1]} / {GREEN}RESPONDED{RESET}")
+                print(f"{command_split[1]} / {GREEN}RESPONDED{RESET}")
             elif status > 0: 
-                print(f"{cmdSpl[1]} / {WARNING}UNREACHABLE{RESET}")
+                print(f"{command_split[1]} / {WARNING}UNREACHABLE{RESET}")
             else: 
-                print(f"{cmdSpl[1]} / {WARNING}UNREACHABLE{RESET}")
-            s.close()
-        case _: error(cmd, cmdSpl)
+                print(f"{command_split[1]} / {WARNING}UNREACHABLE{RESET}")
+            sock.close()
+        case _: error(command, command_split)
 
 #executing file
-def exec_file(cmdSpl):
-    def not_found(cmdSpl):
-        print(f"{WARNING}{cmdSpl[1]} file not found in the PATH.{RESET}")
+def execute_file(command_split):
+    def not_found(command_split):
+        print(f"{WARNING}{command_split[1]} file not found in the PATH.{RESET}")
         return
     
-    if len(cmdSpl) < 2:
-        cmdSpl.append(" ")
-        exec_file(cmdSpl) 
+    if len(command_split) < 2:
+        command_split.append(" ")
+        execute_file(command_split) 
         return
         
-    execPath = shutil.which(cmdSpl[1])
-    if os.access(str(execPath), os.X_OK) == True:
-            print(f"{GREEN}Opening the file /{RESET}", execPath)
+    execute_path = shutil.which(command_split[1])
+    if os.access(str(execute_path), os.X_OK) == True:
+            print(f"{GREEN}Opening the file /{RESET}", execute_path)
             time.sleep(1)
-            subprocess.run(execPath)
+            subprocess.run(execute_path)
 
-    elif os.access(str(execPath), os.X_OK) == False:
-        not_found(cmdSpl)
-    else: not_found(cmdSpl)
+    elif os.access(str(execute_path), os.X_OK) == False:
+        not_found(command_split)
+    else: not_found(command_split)
 
 #curl wrapper
-def curl(cmdSpl):
+def curl_command(command_split):
     input(f"{WARNING}curl system command / press enter at your own risk!{RESET}")
 
-    if len(cmdSpl) < 2:
-        cmdSpl.append(" ")
-        curl(cmdSpl)
+    if len(command_split) < 2:
+        command_split.append(" ")
+        curl_command(command_split)
     else: 
-        return os.system(f'curl {cmdSpl[1]}')
+        return os.system(f'curl {command_split[1]}')
 
 #opens websites
-def open_web(cmdSpl, cmd):
+def open_website(command_split, command):
     input(f"{WARNING}Entering website / press enter at your own risk!{RESET}")
-    if len(cmdSpl) < 2:
-        cmdSpl.append('http://localhost')
-        open_web(cmdSpl, cmd)
+    if len(command_split) < 2:
+        command_split.append('http://localhost')
+        open_website(command_split, command)
     else:
-        print(f"{GREEN}Accessing website{RESET} / {cmdSpl[1]}")
-        webbrowser.open(cmdSpl[1])
+        print(f"{GREEN}Accessing website{RESET} / {command_split[1]}")
+        webbrowser.open(command_split[1])
         return
 
 #checking environment variables   
-def environ_check():
-    envar = os.environ
-    pprint.pprint(dict(envar), width=5, indent=5) 
+def environ_print(command_split, command):
+    match len(command_split):
+        case 1:
+            envar = os.environ
+            pprint.pprint(dict(envar), width=5, indent=5) 
+        case _: error(command_split, command)
     return
 
 #error message
-def error(cmd, cmdSpl):
+def error(command, command_split):
     print(f"{WARNING}", end="")
-    match cmdSpl[0]:
+    match command_split[0]:
         case "type":
-            print(f"{cmd}: not found",sep="")
+            print(f"{command}: not found",sep="")
         case _:
-            print(f"{cmd}: command not found")
+            print(f"{command}: command not found")
             
     print(f"{RESET}", end="")
     return
 
 #echo command
-def echo_cmd(cmdSpl):
-    print(*cmdSpl[1:])
+def echo_command(command_split):
+    print(*command_split[1:])
     return
 
 #exit command
-def exit_cmd(cmdSpl):
-    match cmdSpl[0]:
+def exit_command(command_split):
+    match command_split[0]:
         case "exit":
             sys.exit(0)
         case _:
-            error(cmdSpl) 
+            error(command_split) 
     return
 
 #type command
-def type_cmd(cmdSpl, cmd):
-    if len(cmdSpl) < 2:
-        error(cmd, cmdSpl)
+def type_command(command_split, command):
+    if len(command_split) < 2:
+        error(command, command_split)
         return
     
-    type_file = shutil.which(cmdSpl[1])
-    if cmdSpl[1] in commands:
-        print(cmdSpl[1], "is a shell builtin")
+    type_file = shutil.which(command_split[1])
+    if command_split[1] in commands:
+        print(command_split[1], "is a shell builtin")
         return  
     
-    elif cmdSpl[1] != commands and not type_file:
-        error(cmd, cmdSpl)    
+    elif command_split[1] != commands and not type_file:
+        error(command, command_split)    
         
-    else: print(cmdSpl[1],"is", type_file)
+    else: print(command_split[1],"is", type_file)
     return
 
+#history (work in progress)
+def modify_history(command_split):
+    match len(command_split):
+        case 2:
+            if command_split[1] == "clear":
+                history.clear()
+        case _:
+            for i in history: print(i)
+
 #executing commands
-def cmdexec():
+def command_execute():
     sys.stdout.write(f"{GREEN}$ {RESET}")
-    cmd = input()
-    cmdSpl = cmd.split(" ") 
-    
-    match cmdSpl[0]:
+    command = input()
+    command_split = command.split(" ") 
+
+    history.append(str(command))
+    if len(history) == 50:
+        history.clear()
+
+    match command_split[0]:
         case "":
             return
-        case "type":
-            type_cmd(cmdSpl, cmd)
-        case "echo":
-            echo_cmd(cmdSpl)
-        case "file":
-            exec_file(cmdSpl)       
-        case "web":
-            open_web(cmdSpl, cmd)
-        case "env":
-            environ_check()    
-        case "con":
-            connection_scan(cmdSpl, cmd)   
         case "python":
             print(sys.version)
+        case "type":
+            type_command(command_split, command)
+        case "echo":
+            echo_command(command_split)
+        case "file":
+            execute_file(command_split)       
+        case "web":
+            open_website(command_split, command)
+        case "env":
+            environ_print(command_split, command)    
+        case "con":
+            connection_scan(command_split, command)   
         case "curl":
-            curl(cmdSpl)
+            curl_command(command_split)
         case "exit":
-            exit_cmd(cmdSpl)   
+            exit_command(command_split)  
+        case "history":
+            modify_history(command_split)
         case _:
-            error(cmd, cmdSpl)
+            error(command, command_split)
 
 def main():
     date = datetime.datetime.now()
     print(f"{TITLE1}tt-shell{RESET} / {TITLE2}{date}{RESET}")
     while True:
-        cmdexec()
+        command_execute()
 
 if __name__ == "__main__":
     main()
