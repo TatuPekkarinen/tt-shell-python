@@ -95,19 +95,46 @@ $ 1
 1: command not found
 $ 2
 2: command not found
-$ 3
-3: command not found
-$ 4
-4: command not found
 $ history
 1
 2
-3
-4
 history
 $ history clear
 $ history
 history
+```
+### morph - morph one string into another (I tought this was cool for a moment) ###
+
+```
+$ morph f hello world 
+hello // -1
+hell // -1
+hel // -1
+he // -1
+h // SHIFT
+f // SHIFT
+Morph complete // f
+$ morph helloworld f
+fd // +1
+fdd // +1
+fddd // +1
+fdddd // +1
+fddddd // +1
+fdddddd // +1
+fddddddd // +1
+fdddddddd // +1
+fddddddddd // +1
+fddddddddd // SHIFT
+hddddddddd // SHIFT
+hedddddddd // SHIFT
+helddddddd // SHIFT
+helldddddd // SHIFT
+helloddddd // SHIFT
+hellowdddd // SHIFT
+hellowoddd // SHIFT
+hellowordd // SHIFT
+helloworld // SHIFT
+Morph complete // helloworld
 ```
 
 ### CODECRAFTERS STARTER CODE ###

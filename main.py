@@ -136,6 +136,49 @@ def type_command(command_split, command):
     else: print(command_split[1],"is", type_file)
     return
 
+#morph one text into another
+def morph(command_split):
+    morph = list(str(command_split[2]))
+    target = list(str(command_split[1]))
+
+    m = len(morph) 
+    t = len(target)
+    value = m-t
+        
+    #shift into positive
+    if value < 0:
+        absolute_value = value * -1
+    if value > 0:
+        absolute_value = value
+
+    if morph != target:
+        for n in range(100):
+            if len(morph) != len(target):
+                for _ in range(absolute_value):
+                    if len(target) > len(morph):
+                        morph.append(target[-1])
+                        result = "".join(morph)
+                        print(f"{GREEN}{result}{RESET} // +1")
+                    if len(target) < len(morph):
+                        result = "".join(morph)
+                        print(f"{WARNING}{result}{RESET} // -1")
+                        morph.pop(-1)
+
+            result = "".join(morph)
+            print(f"{GREEN}{result}{RESET} // SHIFT")
+            if morph == target:
+                print(f"Morph complete // {GREEN}{result}{RESET}")
+                target.clear()
+                morph.clear()
+                return
+
+            if len(morph) == len(target):
+                morph[n] = target[n]
+            
+    else: 
+        print("Morph not needed")
+        return
+
 #history (work in progress)
 def modify_history(command_split):
     match len(command_split):
@@ -178,6 +221,8 @@ def command_execute():
             exit_command(command_split)  
         case "history":
             modify_history(command_split)
+        case "morph":
+            morph(command_split)
         case _:
             error(command, command_split)
 
