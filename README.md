@@ -69,73 +69,64 @@ $ env
 ### con - TCP connectivity check ###
 
 ```
+- connection test
+
 $ con google.com 443
 google.com / RESPONDED
 $ con google.com 442
 google.com / UNREACHABLE
+
+- port scan function (uses localhost for obvious reasons)
+
+$ con range 0 20
+proceed port scan? 
+PORT / 0 / UNREACHABLE
+PORT / 1 / UNREACHABLE
+PORT / 2 / UNREACHABLE
+PORT / 3 / UNREACHABLE
+PORT / 4 / UNREACHABLE
+PORT / 5 / UNREACHABLE
+PORT / 6 / UNREACHABLE
+PORT / 7 / UNREACHABLE
+PORT / 8 / UNREACHABLE
+PORT / 9 / UNREACHABLE
+PORT / 10 / UNREACHABLE
 ```
 
 ### cURL - cURL wrapper (needs cURL installed) ###
 
 ```
-$ curl google.fi
-
+$ curl google.com
+curl system command / press enter at your own risk! 
 <HTML><HEAD><meta http-equiv="content-type" content="text/html;charset=utf-8">
 <TITLE>301 Moved</TITLE></HEAD><BODY>
 <H1>301 Moved</H1>
 The document has moved
-<A HREF="http://www.google.fi/">here</A>.
+<A HREF="http://www.google.com/">here</A>.
 </BODY></HTML>
 ```    
 
-### history / history clear - access past command history ###
+### history - access past command history ###
 
 ```
-$ 1
-1: command not found
-$ 2
-2: command not found
-$ history
-1
-2
-history
-$ history clear
-$ history
-history
+- history is stored as a list with a cap of 25 max items in history
+
+history 
+(prints out command history)
+
+history clear 
+(clears history)
+
 ```
 ### morph - morph one string into another (I tought this was cool for a moment) ###
 
 ```
-$ morph helloworld worldhelloprogram
-worldhelloprogram // -1
-worldhelloprogra // -1
-worldhelloprogr // -1
-worldhelloprog // -1
-worldhellopro // -1
-worldhellopr // -1
-worldhellop // -1
-worldhello // SHIFT
-horldhello // SHIFT
-herldhello // SHIFT
-helldhello // SHIFT
-helldhello // SHIFT
-hellohello // SHIFT
-hellowello // SHIFT
-hellowollo // SHIFT
-helloworlo // SHIFT
-helloworlo // SHIFT
-helloworld // SHIFT
-Morph complete // helloworld
-```
-
-### CODECRAFTERS STARTER CODE ###
-
-```            
-import sys
-            
-def main():
-    sys.stdout.write("$ ")
-            
-if __name__ == "__main__":
-    main()
+$ morph hello world
+world // SHIFT
+horld // SHIFT
+herld // SHIFT
+helld // SHIFT
+helld // SHIFT
+hello // SHIFT
+Morph complete // hello
 ```

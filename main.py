@@ -2,7 +2,6 @@ import pprint
 import time, datetime
 import sys, os, shutil
 import subprocess, webbrowser
-
 import socket
 
 GREEN = '\033[92m'
@@ -11,7 +10,7 @@ TITLE2 = '\033[95m'
 WARNING = '\033[91m'
 RESET = '\033[0m'
 
-commands = {"exit", "echo", "type", "web", "python", "env", "file", "con", "history"}
+commands = {"exit", "echo", "type", "web", "python", "env", "file", "con", "history", "morph"}
 
 #history stores as a global list
 history = []
@@ -31,14 +30,37 @@ def connection_scan(command_split, command):
                 return
 
             status = sock.connect_ex((HOST, PORT))
-
             if status == 0:
-                print(f"{command_split[1]} / {GREEN}RESPONDED{RESET}")
+                print(f" {command_split[1]} / {GREEN}RESPONDED{RESET}")
             elif status > 0: 
                 print(f"{command_split[1]} / {WARNING}UNREACHABLE{RESET}")
             else: 
                 print(f"{command_split[1]} / {WARNING}UNREACHABLE{RESET}")
             sock.close()
+        
+        case _: 
+            if command_split[1] == "range":
+                port_scan(command_split, command)
+            else: error(command, command_split)
+
+#portscanner
+def port_scan(command_split, command):
+    input(f"{WARNING}proceed port scan?{RESET} ")
+    match len(command_split):
+        case 4:
+            LOCALHOST = "127.0.0.1"
+            for scan_number in range(int(command_split[2]), int(command_split[3]) + 1):
+                sock = socket.socket(socket.AF_INET, socket. SOCK_STREAM)
+                sock.settimeout(0.5)
+                PORT = scan_number
+                status = sock.connect_ex((LOCALHOST, int(PORT)))
+                if status == 0:
+                    print(f"PORT / {scan_number} / {GREEN}RESPONDED{RESET}")
+                elif status > 0: 
+                    print(f"PORT / {scan_number} / {WARNING}UNREACHABLE{RESET}")
+                else: 
+                    print(f"PORT / {scan_number} / {WARNING}UNREACHABLE{RESET}")
+                sock.close()
         case _: error(command, command_split)
 
 #executing file
@@ -78,7 +100,7 @@ def open_website(command_split, command):
     input(f"{WARNING}entering website / press enter at your own risk! {RESET}")
     
     if len(command_split) < 2:
-        command_split.append('http://localhost')
+        command_split.append('127.0.0.1')
         open_website(command_split, command)
     else:
         print(f"{GREEN}Accessing website{RESET} / {command_split[1]}")
@@ -97,6 +119,7 @@ def environ_print(command_split, command):
 #error message
 def error(command, command_split):
     print(f"{WARNING}", end="")
+    
     match command_split[0]:
         case "type":
             print(f"{command}: not found",sep="")
@@ -171,15 +194,13 @@ def morph(command_split):
             print(f"{GREEN}{result}{RESET} // SHIFT")
             if morph == target:
                 print(f"Morph complete // {GREEN}{result}{RESET}")
-                target.clear()
-                morph.clear()
                 return
 
             if len(morph) == len(target):
                 morph[n] = target[n]
             
     else: 
-        print("Morph not needed")
+        print("Morph not needed / text already morphed")
         return
 
 #history (work in progress)
@@ -199,7 +220,7 @@ def command_execute():
 
     history.append(str(command))
     if len(history) == 25:
-        history.clear()
+        history.pop()
 
     match command_split[0]:
         case "":
