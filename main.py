@@ -87,13 +87,16 @@ def execute_file(command_split):
         not_found(command_split)
     else: not_found(command_split)
 
-#curl wrapper
-def curl_wrap(command):
-    return os.system(command)
-    
-#git wrap
-def git_wrap(command):
-    return os.system(command)
+def wrapper(command, command_split):
+    #curl wrapper
+    match command_split[0]:
+        case "curl"
+            def curl_wrap(command):
+                return os.system(command)
+        case "git":
+            #git wrap
+            def git_wrap(command):
+                return os.system(command)
 
 #opens websites
 def open_website(command_split, command):
