@@ -10,7 +10,9 @@ TITLE2 = '\033[95m'
 WARNING = '\033[91m'
 RESET = '\033[0m'
 
-commands = {"exit", "echo", "type", "web", "python", "env", "file", "con", "history", "morph"}
+commands = {"exit", "echo", "type", "web", 
+            "python", "env", "file", "con", 
+            "history", "morph", "wrap"}
 
 #history stores as a global list
 history = []
@@ -86,14 +88,12 @@ def execute_file(command_split):
     else: not_found(command_split)
 
 #curl wrapper
-def curl_command(command_split):
-    input(f"{WARNING}curl system command / press enter at your own risk! {RESET}")
-
-    if len(command_split) < 2:
-        command_split.append(" ")
-        curl_command(command_split)
-    else: 
-        return os.system(f'curl {command_split[1]}')
+def curl_wrap(command):
+    return os.system(command)
+    
+#git wrap
+def git_wrap(command):
+    return os.system(command)
 
 #opens websites
 def open_website(command_split, command):
@@ -240,13 +240,15 @@ def command_execute():
         case "con":
             connection_scan(command_split, command)   
         case "curl":
-            curl_command(command_split)
+            curl_wrap(command)
         case "exit":
             exit_command(command_split)  
         case "history":
             modify_history(command_split)
         case "morph":
             morph(command_split)
+        case "git":
+            git_wrap(command)
         case _:
             error(command, command_split)
 

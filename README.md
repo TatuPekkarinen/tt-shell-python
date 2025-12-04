@@ -78,7 +78,7 @@ google.com / UNREACHABLE
 
 - port scan function (uses localhost for obvious reasons)
 
-$ con range 0 20
+$ con range 0 5
 proceed port scan? 
 PORT / 0 / UNREACHABLE
 PORT / 1 / UNREACHABLE
@@ -86,11 +86,6 @@ PORT / 2 / UNREACHABLE
 PORT / 3 / UNREACHABLE
 PORT / 4 / UNREACHABLE
 PORT / 5 / UNREACHABLE
-PORT / 6 / UNREACHABLE
-PORT / 7 / UNREACHABLE
-PORT / 8 / UNREACHABLE
-PORT / 9 / UNREACHABLE
-PORT / 10 / UNREACHABLE
 ```
 
 ### cURL - cURL wrapper (needs cURL installed) ###
