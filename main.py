@@ -2,7 +2,7 @@ import pprint
 import time, datetime
 import sys, os, shutil
 import subprocess, webbrowser
-import socket
+import socket, json
 
 GREEN = '\033[92m'
 TITLE1 = '\033[94m'
@@ -10,6 +10,7 @@ TITLE2 = '\033[95m'
 WARNING = '\033[91m'
 RESET = '\033[0m'
 
+#all usable commands
 commands = {"exit", "echo", "type", "web", 
             "python", "env", "file", "con", 
             "history", "morph", "git", "curl"}
@@ -17,53 +18,60 @@ commands = {"exit", "echo", "type", "web",
 #history stores as a global list
 history = []
 
-#connectivity tester
+#connectivity tester and port scanner
 def connection_scan(command_split, command):
-    match len(command_split):
-        case 3:
-            sock = socket.socket(socket.AF_INET, socket. SOCK_STREAM)
-            sock.settimeout(10)
-            HOST = socket.gethostbyname(str(command_split[1]))
-            PORT = int(command_split[2])
+    def scan():
+            match command_split[1]:
+                case "range":
+                    if status == 0:
+                        print(f" {port_range} / {GREEN}{sock_data[str(status)]}{RESET}")
+                    elif status > 0: 
+                        print(f"{port_range} / {WARNING}{sock_data[str(status)]}{RESET}")
+                    else: 
+                        print(f"{port_range} / {WARNING}{sock_data[str(status)]}{RESET}")
+                    sock.close()
 
-            if not (0 <= PORT <= 65535):
-                print(f"{WARNING}Port invalid{RESET} / (Not in range 0/65535)")
-                sock.close()
-                return
+                case _:
+                    if status == 0:
+                        print(f" {command_split[1]} / {GREEN}{sock_data[str(status)]}{RESET}")
+                    elif status > 0: 
+                        print(f"{command_split[1]} / {WARNING}{sock_data[str(status)]}{RESET}")
+                    else: 
+                        print(f"{command_split[1]} / {WARNING}{sock_data[str(status)]}{RESET}")
+                    sock.close()
+            
+            
+    def range_check():
+        if not (0 <= PORT <= 65535):
+            return False
 
-            status = sock.connect_ex((HOST, PORT))
-            if status == 0:
-                print(f" {command_split[1]} / {GREEN}RESPONDED{RESET}")
-            elif status > 0: 
-                print(f"{command_split[1]} / {WARNING}UNREACHABLE{RESET}")
-            else: 
-                print(f"{command_split[1]} / {WARNING}UNREACHABLE{RESET}")
-            sock.close()
+    file = open('socket.json', 'r')
+    sock_data = json.load(file)
 
-        case _: 
-            if command_split[1] == "range":
-                port_scan(command_split, command)
-            else: error(command, command_split)
-
-#port scanning
-def port_scan(command_split, command):
-    input(f"{WARNING}Portscan (localhost) / Press enter to continue{RESET} ")
-    match len(command_split):
-        case 4:
-            LOCALHOST = "127.0.0.1"
-            for scan_number in range(int(command_split[2]), int(command_split[3]) + 1):
+    if command_split[1] == 'range':
+        for port_range in range(int(command_split[2]), int(command_split[3]) + 1):
                 sock = socket.socket(socket.AF_INET, socket. SOCK_STREAM)
                 sock.settimeout(0.5)
-                PORT = scan_number
-                status = sock.connect_ex((LOCALHOST, int(PORT)))
-                if status == 0:
-                    print(f"PORT / {scan_number} / {GREEN}RESPONDED{RESET}")
-                elif status > 0: 
-                    print(f"PORT / {scan_number} / {WARNING}UNREACHABLE{RESET}")
-                else: 
-                    print(f"PORT / {scan_number} / {WARNING}UNREACHABLE{RESET}")
-                sock.close()
-        case _: error(command, command_split)
+                LOCALHOST = '127.0.0.1'
+                PORT = int(port_range)
+                if range_check() == False:
+                    print(f"{WARNING}Port invalid{RESET} / (Not in range 0/65535)")
+                    sock.close()
+                    return
+                status = sock.connect_ex((LOCALHOST, PORT))
+                scan()
+                
+    else:   
+        sock = socket.socket(socket.AF_INET, socket. SOCK_STREAM)
+        sock.settimeout(5)
+        HOST = socket.gethostbyname(str(command_split[1]))
+        PORT = int(command_split[2])
+        if range_check() == False:
+            print(f"{WARNING}Port invalid{RESET} / (Not in range 0/65535)")
+            sock.close()
+            return
+        status = sock.connect_ex((HOST, PORT))
+        scan()
 
 #executing file
 def execute_file(command_split):
@@ -171,7 +179,7 @@ def morph(command_split):
 
     m = len(morph) 
     t = len(target)
-    value = m-t
+    value = m - t
         
     #shift into positive
     if value < 0:
