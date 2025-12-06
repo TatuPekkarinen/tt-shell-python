@@ -81,7 +81,6 @@ def execute_file(command_split):
     if len(command_split) < 2:
         command_split.append(" ")
         execute_file(command_split) 
-        command_split.clear()
         return
     
     execute_path = shutil.which(command_split[1])
@@ -121,7 +120,6 @@ def open_website(command_split, command):
     else:
         print(f"{GREEN}Accessing website{RESET} / {command_split[1]}")
         webbrowser.open(command_split[1])
-        command_split.clear()
         return
     
 #morph one text into another
@@ -251,14 +249,14 @@ def command_execute():
             environ_print(command_split, command)    
         case "con":
             connection_scan(command_split, command, port_mutable)   
-        case "curl":
-            wrapper(command, command_split)
         case "exit":
             exit_command(command_split)  
         case "history":
             modify_history(command_split)
         case "morph":
             morph(command_split)
+        case "curl":
+            wrapper(command, command_split)
         case "git":
             wrapper(command, command_split)
         case _:
