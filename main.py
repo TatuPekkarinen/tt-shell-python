@@ -18,60 +18,58 @@ commands = {"exit", "echo", "type", "web",
 #history stores as a global list
 history = []
 
+port_mutable = str(None)
 #connectivity tester and port scanner
-def connection_scan(command_split, command):
-    def scan():
-            match command_split[1]:
-                case "range":
-                    if status == 0:
-                        print(f" {port_range} / {GREEN}{sock_data[str(status)]}{RESET}")
-                    elif status > 0: 
-                        print(f"{port_range} / {WARNING}{sock_data[str(status)]}{RESET}")
-                    else: 
-                        print(f"{port_range} / {WARNING}{sock_data[str(status)]}{RESET}")
-                    sock.close()
+def connection_scan(command_split, port_mutable, command):
+    def scan(port_mutable):
+        if status == 0:
+            print(f"Port / {port_mutable} / {GREEN}{sock_data[str(status)]}{RESET}")
+        elif status > 0: 
+            print(f"Port / {port_mutable} / {WARNING}{sock_data[str(status)]}{RESET}")
+        else: 
+            print(f"Port / {port_mutable} / {WARNING}{sock_data[str(status)]}{RESET}")
+        sock.close()
 
-                case _:
-                    if status == 0:
-                        print(f" {command_split[1]} / {GREEN}{sock_data[str(status)]}{RESET}")
-                    elif status > 0: 
-                        print(f"{command_split[1]} / {WARNING}{sock_data[str(status)]}{RESET}")
-                    else: 
-                        print(f"{command_split[1]} / {WARNING}{sock_data[str(status)]}{RESET}")
-                    sock.close()
-            
-            
     def range_check():
         if not (0 <= PORT <= 65535):
             return False
 
-    file = open('socket.json', 'r')
-    sock_data = json.load(file)
-
-    if command_split[1] == 'range':
-        for port_range in range(int(command_split[2]), int(command_split[3]) + 1):
+    if len(command_split) > 2:
+        file = open('socket.json', 'r')
+        sock_data = json.load(file)
+        
+        if command_split[1] == 'range':
+            for port_range in range(int(command_split[2]), int(command_split[3]) + 1):
                 sock = socket.socket(socket.AF_INET, socket. SOCK_STREAM)
                 sock.settimeout(0.5)
                 LOCALHOST = '127.0.0.1'
                 PORT = int(port_range)
+
                 if range_check() == False:
-                    print(f"{WARNING}Port invalid{RESET} / (Not in range 0/65535)")
+                    print(f"Port ({port_range}) invalid / {WARNING}Not in range{RESET}")
                     sock.close()
                     return
+
+                port_mutable = PORT
                 status = sock.connect_ex((LOCALHOST, PORT))
-                scan()
-                
-    else:   
-        sock = socket.socket(socket.AF_INET, socket. SOCK_STREAM)
-        sock.settimeout(5)
-        HOST = socket.gethostbyname(str(command_split[1]))
-        PORT = int(command_split[2])
-        if range_check() == False:
-            print(f"{WARNING}Port invalid{RESET} / (Not in range 0/65535)")
-            sock.close()
-            return
-        status = sock.connect_ex((HOST, PORT))
-        scan()
+                scan(port_mutable)  
+
+        else:   
+            sock = socket.socket(socket.AF_INET, socket. SOCK_STREAM)
+            sock.settimeout(5)
+            HOST = socket.gethostbyname(str(command_split[1]))
+            PORT = int(command_split[2])
+            print(f"connnecting to {HOST} from {PORT}")
+
+            if range_check() == False:
+                print(f"{WARNING}Port invalid{RESET} / (Not in range 0/65535)")
+                sock.close()
+                return
+            
+            port_mutable = PORT
+            status = sock.connect_ex((HOST, PORT))
+            scan(port_mutable)
+    else: error(command, command_split)
 
 #executing file
 def execute_file(command_split):
@@ -251,7 +249,7 @@ def command_execute():
         case "env":
             environ_print(command_split, command)    
         case "con":
-            connection_scan(command_split, command)   
+            connection_scan(command_split, command, port_mutable)   
         case "curl":
             wrapper(command, command_split)
         case "exit":
