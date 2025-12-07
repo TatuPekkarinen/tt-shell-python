@@ -39,6 +39,11 @@ def connection_scan(command_split, command):
         file = open('socket.json', 'r')
         sock_data = json.load(file)
         if command_split[1] == 'range':
+        
+            if len(command_split) <= 3:
+                print(f"{WARNING}invalid arguements {RESET}: 3 given / 4 expected")
+                return
+
             print(f"{GREEN}Starting scan from {command_split[2]} to {command_split[3]}{RESET}")
             for port_range in range(int(command_split[2]), int(command_split[3]) + 1):
                 sock = socket.socket(socket.AF_INET, socket. SOCK_STREAM)
@@ -60,23 +65,19 @@ def connection_scan(command_split, command):
             sock.settimeout(5)
             HOST = socket.gethostbyname(str(command_split[1]))
             PORT = int(command_split[2])
-            print(f"{GREEN}connnecting to {HOST} from {PORT}{RESET}")
 
             if range_check() == False:
                 print(f"{WARNING}Port invalid{RESET} / (Not in range 0/65535)")
                 sock.close()
                 return
             
+            print(f"{GREEN}connnecting to {HOST} from {PORT}{RESET}")
+
             port_mutable = PORT
             status = sock.connect_ex((HOST, PORT))
-            match status:
-                case 0:
-                    scan()
-                case _:
-                    if command_split[2] == isinstance(int):
-                        scan()
-                    else:
-                        error(command, command_split)
+            if status >= 0:
+                scan()
+            else: error(command, command_split)
     else: error(command, command_split)
 
 #executing file
