@@ -41,7 +41,7 @@ def connection_scan(command_split, command):
         if command_split[1] == 'range':
         
             if len(command_split) <= 3:
-                print(f"{WARNING}invalid arguements {RESET}: 3 given / 4 expected")
+                print(f"{WARNING}invalid arguments {RESET}: 3 given / 4 expected")
                 return
 
             print(f"{GREEN}Starting scan from {command_split[2]} to {command_split[3]}{RESET}")
