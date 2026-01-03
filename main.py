@@ -2,6 +2,7 @@ import pprint
 import time, datetime
 import sys, os, shutil
 import subprocess, webbrowser
+from pathlib import Path
 import socket, json
 
 GREEN = '\033[92m'
@@ -10,18 +11,19 @@ TITLE2 = '\033[95m'
 WARNING = '\033[91m'
 RESET = '\033[0m'
 
-#all usable commands
-commands = {"exit", "echo", "type", "web", 
-            "python", "env", "file", "con", 
-            "history", "morph", "git", "curl"}
+#current directory
+script_dir = Path(__file__).parent
 
 #history stores as a global list
 history = []
 
-port_mutable = str(None)
+#error handler
+def error_handler(command, command_split):
+    print(f"{WARNING}{command}: command not found{RESET}")
+    return
 
 #connectivity tester and port scanner
-def connection_scan(command_split, command):
+def connection_scan(command, command_split):
     def scan():
         if status == 0:
             print(f"Port / {port_mutable} / {GREEN}{sock_data[str(status)]}{RESET}")
@@ -31,27 +33,27 @@ def connection_scan(command_split, command):
             print(f"Port / {port_mutable} / {WARNING}{sock_data[str(status)]}{RESET}")
         sock.close()
 
-    def range_check():
-        if not (0 <= PORT <= 65535):
-            return False
+    def port_valid(port: int) -> bool:
+        return 0 <= port <= 65535
 
     if len(command_split) > 2:
-        file = open('socket.json', 'r')
-        sock_data = json.load(file)
+        file_path = script_dir / 'socket.json'
+        with file_path.open('r') as file:
+            sock_data = json.load(file)
+
         if command_split[1] == 'range':
-        
             if len(command_split) <= 3:
                 print(f"{WARNING}invalid arguments {RESET}: 3 given / 4 expected")
                 return
 
             print(f"{GREEN}Starting scan from {command_split[2]} to {command_split[3]}{RESET}")
             for port_range in range(int(command_split[2]), int(command_split[3]) + 1):
-                sock = socket.socket(socket.AF_INET, socket. SOCK_STREAM)
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.settimeout(0.5)
                 LOCALHOST = '127.0.0.1'
                 PORT = int(port_range)
 
-                if range_check() == False:
+                if not port_valid(PORT):
                     print(f"Port ({port_range}) invalid / {WARNING}Not in range{RESET}")
                     sock.close()
                     return
@@ -61,12 +63,12 @@ def connection_scan(command_split, command):
                 scan()  
 
         else:   
-            sock = socket.socket(socket.AF_INET, socket. SOCK_STREAM)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(5)
             HOST = socket.gethostbyname(str(command_split[1]))
             PORT = int(command_split[2])
 
-            if range_check() == False:
+            if not port_valid(PORT):
                 print(f"{WARNING}Port invalid{RESET} / (Not in range 0/65535)")
                 sock.close()
                 return
@@ -75,13 +77,12 @@ def connection_scan(command_split, command):
 
             port_mutable = PORT
             status = sock.connect_ex((HOST, PORT))
-            if status >= 0:
-                scan()
-            else: error(command, command_split)
-    else: error(command, command_split)
+            if status >= 0: scan()
+            else: error_handler(command, command_split)
+    else: error_handler(command, command_split)
 
 #executing file
-def execute_file(command_split):
+def execute_file(command, command_split):
     def not_found(command_split):
         print(f"{WARNING}{command_split[1]} file not found in the PATH{RESET}")
         return
@@ -102,12 +103,8 @@ def execute_file(command_split):
     else: not_found(command_split)
 
 def wrapper(command, command_split):
-    #curl wrapper
-    def curl_wrap(command):
-        return os.system(command)
-    #git wrap
-    def git_wrap(command):
-        return os.system(command)
+    curl_wrap = lambda command : os.system(command)
+    git_wrap = lambda command : os.system(command)
     
     match command_split[0]:
         case "curl":
@@ -115,10 +112,10 @@ def wrapper(command, command_split):
         case "git":
             git_wrap(command)
         case _:
-            error(command, command_split)
+            error_handler(command, command_split)
 
 #opens websites
-def open_website(command_split, command):
+def open_website(command, command_split):
     input(f"{WARNING}Entering website / Press enter to continue{RESET}")
     
     if len(command_split) < 2:
@@ -130,7 +127,7 @@ def open_website(command_split, command):
         return
     
 #morph one text into another
-def morph(command_split):
+def morph(command, command_split):
     morph = list(str(command_split[2]))
     target = list(str(command_split[1]))
 
@@ -173,54 +170,36 @@ def morph(command_split):
         return
 
 #checking environment variables   
-def environ_print(command_split, command):
+def environ_print(command, command_split):
     match len(command_split):
         case 1:
             envar = os.environ
             pprint.pprint(dict(envar), width=5, indent=5) 
-        case _: error(command_split, command)
-    return
-
-#error message
-def error(command, command_split):
-    print(f"{WARNING}", end="")
-    match command_split[0]:
-        case "type":
-            print(f"{command}: not found",sep="")
-        case _:
-            print(f"{command}: command not found")
-            
-    print(f"{RESET}", end="")
-    return
-
-#exit command
-def exit_command(command_split):
-    match command_split[0]:
-        case "exit":
-            sys.exit(0)
-        case _:
-            error(command_split) 
+        case _: error_handler(command_split, command)
     return
 
 #type command
-def type_command(command_split, command):
-    if len(command_split) < 2:
-        error(command, command_split)
-        return
-    
+def type_command(command, command_split):
+    def file_check():
+        if type_file and os.access(type_file, os.X_OK):
+            return True
+        else: return False
+
     type_file = shutil.which(command_split[1])
+
     if command_split[1] in commands:
-        print(command_split[1], "is a shell builtin")
+        print(f"{command_split[1]} is a builtin command")
         return  
     
-    elif command_split[1] != commands and not type_file:
-        error(command, command_split)    
-        
-    else: print(command_split[1],"is", type_file)
+    if file_check() == True:
+        print(f"{command_split[1]} is at {type_file}")
+        return 
+    
+    else: error_handler(command, command_split)
     return
 
-#history (work in progress)
-def modify_history(command_split):
+#history
+def modify_history(command, command_split):
     match len(command_split):
         case 2:
             if command_split[1] == "clear":
@@ -228,6 +207,23 @@ def modify_history(command_split):
         case _:
             print(F"\n{GREEN}Command history{RESET}")
             for i in history: print(i)
+    return
+
+#all usable commands
+commands = {
+    "exit": lambda command, command_split: sys.exit(0),
+    "type": type_command,
+    "web": open_website,
+    "python": lambda command, command_split: print(sys.version),
+    "echo": lambda command, command_split: print(*command_split[1:]),
+    "env": environ_print,
+    "file": execute_file,
+    "con": connection_scan,
+    "history": modify_history,
+    "morph": morph,
+    "git": wrapper,
+    "curl": wrapper,
+}
 
 #executing commands
 def command_execute():
@@ -239,35 +235,12 @@ def command_execute():
     if len(history) == 25:
         history.pop()
 
-    match command_split[0]:
-        case "":
-            return
-        case "python":
-            print(sys.version)
-        case "type":
-            type_command(command_split, command)
-        case "echo":
-            print(*command_split[1:])
-        case "file":
-            execute_file(command_split)       
-        case "web":
-            open_website(command_split, command)
-        case "env":
-            environ_print(command_split, command)    
-        case "con":
-            connection_scan(command_split, command)   
-        case "exit":
-            exit_command(command_split)  
-        case "history":
-            modify_history(command_split)
-        case "morph":
-            morph(command_split)
-        case "curl":
-            wrapper(command, command_split)
-        case "git":
-            wrapper(command, command_split)
-        case _:
-            error(command, command_split)
+    if command_split[0] in commands:
+        execute = commands.get(command_split[0], error_handler)
+        execute(command, command_split)
+    else: 
+        error_handler(command, command_split)
+
 
 def main():
     date = datetime.datetime.now()
