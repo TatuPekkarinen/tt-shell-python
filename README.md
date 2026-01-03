@@ -19,11 +19,11 @@ PS C:\Users\-\tt-shell\tt-shell>
 
 ```        
 $ type cmd
-cmd is C:\Windows\system32\cmd.EXE
+{Location of cmd}
 ```
 ```        
 $ type echo
-echo is a shell builtin
+{info on the command echo}
 ```        
 
 ### echo - echoes the text ###

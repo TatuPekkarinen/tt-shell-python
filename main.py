@@ -84,9 +84,6 @@ def connection_scan(command, command_split):
 
 #executing file
 def execute_file(command, command_split):
-    def not_found(command_split):
-        print(f"{WARNING}{command_split[1]} file not found in the PATH{RESET}")
-        return
     
     if len(command_split) < 2:
         command_split.append(" ")
@@ -100,8 +97,8 @@ def execute_file(command, command_split):
         subprocess.run(execute_path)
 
     elif os.access(str(execute_path), os.X_OK) == False:
-        not_found(command_split)
-    else: not_found(command_split)
+        print(f"{WARNING}{command_split[1]} file not found in the PATH{RESET}")
+    else: return
 
 #wrappers 
 def wrapper(command, command_split):
@@ -118,8 +115,6 @@ def wrapper(command, command_split):
 
 #opens websites
 def open_website(command, command_split):
-    input(f"{WARNING}Entering website / Press enter to continue{RESET}")
-    
     if len(command_split) < 2:
         command_split.append('127.0.0.1')
         open_website(command_split, command)
@@ -133,9 +128,9 @@ def morph_command(command, command_split):
     morph = list(str(command_split[2]))
     target = list(str(command_split[1]))
 
-    m = len(morph) 
-    t = len(target)
-    value = m - t
+    m_value = len(morph) 
+    t_value = len(target)
+    value = m_value - t_value
         
     #shift into positive
     if value < 0:
@@ -187,18 +182,19 @@ def type_command(command, command_split):
             return True
         else: return False
 
-    type_file = shutil.which(command_split[1])
+    if len(command_split) >= 2:
+        type_file = shutil.which(command_split[1])
 
-    if command_split[1] in commands:
-        print(f"{command_split[1]} is a builtin command")
-        return  
-    
-    if file_check() == True:
-        print(f"{command_split[1]} is at {type_file}")
-        return 
-    
-    else: error_handler(command, command_split)
-    return
+        if command_split[1] in commands:
+            print(f"{command_split[1]} // {commands.get(command_split[1])}")
+            return  
+
+        if file_check() == True:
+            print(f"{command_split[1]} // {type_file}")
+            return 
+        
+    else: 
+        error_handler(command, command_split)
 
 #history
 def modify_history(command, command_split, history):
@@ -207,7 +203,7 @@ def modify_history(command, command_split, history):
             if command_split[1] == "clear":
                 history.clear()
         case _:
-            print(F"\n{GREEN}Command history{RESET}")
+            print(F"\n{GREEN}// Command history //{RESET}")
             for i in history: print(i)
     return
 
