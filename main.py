@@ -163,7 +163,7 @@ def morph_command(command, command_split):
                 morph[n] = target[n]
             
     else: 
-        print("Morph not needed / text already morphed")
+        print(f"{GREEN}{morph} = {target}{RESET}")
         return
 
 #checking environment variables   
