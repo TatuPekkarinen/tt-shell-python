@@ -13,7 +13,7 @@ WARNING = '\033[91m'
 RESET = '\033[0m'
 
 #current directory
-script_dir = Path(__file__).parent
+script_directory = Path(__file__).parent
 
 #global deque of command history
 history = deque(maxlen=25)
@@ -38,7 +38,7 @@ def connection_scan(command, command_split):
         return 0 <= port <= 65535
 
     if len(command_split) > 2:
-        file_path = script_dir / 'socket.json'
+        file_path = script_directory / 'socket.json'
         with file_path.open('r') as file:
             sock_data = json.load(file)
 
@@ -80,15 +80,13 @@ def connection_scan(command, command_split):
             status = sock.connect_ex((HOST, PORT))
             if status >= 0: scan()
             else: error_handler(command, command_split)
+            
     else: error_handler(command, command_split)
 
 #executing file
 def execute_file(command, command_split):
-    
     if len(command_split) < 2:
-        command_split.append(" ")
-        execute_file(command_split) 
-        return
+        error_handler(command, command_split)
     
     execute_path = shutil.which(command_split[1])
     if os.access(str(execute_path), os.X_OK) == True:
@@ -113,7 +111,7 @@ def wrapper(command, command_split):
         case _:
             error_handler(command, command_split)
 
-#opens websites
+#website opener
 def open_website(command, command_split):
     if len(command_split) < 2:
         command_split.append('127.0.0.1')
@@ -123,7 +121,7 @@ def open_website(command, command_split):
         webbrowser.open(command_split[1])
         return
     
-#morph one text into another
+#morph strings
 def morph_command(command, command_split):
     morph = list(str(command_split[2]))
     target = list(str(command_split[1]))
@@ -156,55 +154,50 @@ def morph_command(command, command_split):
             result = "".join(morph)
             print(f"{GREEN}{result}{RESET} // SHIFT")
             if morph == target:
-                print(f"Morph complete // {GREEN}{result}{RESET}")
+                print(f"Morph complete => {GREEN}{result}{RESET}")
                 return
 
             if len(morph) == len(target):
                 morph[n] = target[n]
             
     else: 
-        print(f"{GREEN}{morph} = {target}{RESET}")
+        print(f"{GREEN}{morph} <=> {target}{RESET}")
         return
 
-#checking environment variables   
+#environment variables   
 def environ_print(command, command_split):
-    match len(command_split):
-        case 1:
+    if len(command_split) == 1:
             envar = os.environ
             pprint.pprint(dict(envar), width=5, indent=5) 
-        case _: error_handler(command_split, command)
+    else:  error_handler(command, command_split)
     return
 
-#type command
+#builtin checker
 def type_command(command, command_split):
-    def file_check():
-        if type_file and os.access(type_file, os.X_OK):
-            return True
-        else: return False
+    def file_check() -> bool:
+        if type_file is not None:
+            return os.access(type_file, os.X_OK)
 
-    if len(command_split) >= 2:
-        type_file = shutil.which(command_split[1])
-
-        if command_split[1] in commands:
-            print(f"{command_split[1]} // {commands.get(command_split[1])}")
-            return  
-
-        if file_check() == True:
-            print(f"{command_split[1]} // {type_file}")
-            return 
-        
-    else: 
-        error_handler(command, command_split)
-
-#history
-def modify_history(command, command_split, history):
     match len(command_split):
         case 2:
-            if command_split[1] == "clear":
+            type_file = shutil.which(command_split[1])
+            if command_split[1] in commands:
+                print(f"{command_split[1]} // {commands.get(command_split[1])}")
+                return  
+
+            if file_check() == True:
+                print(f"{command_split[1]} => {type_file}")
+                return 
+        case _: error_handler(command, command_split)
+
+#history
+def modify_history(command, command_split):
+    if len(command_split) >= 2:
+        match command_split[1]:
+            case 'clear':
                 history.clear()
-        case _:
-            print(F"\n{GREEN}// Command history //{RESET}")
-            for i in history: print(i)
+            case _: pass
+    else: error_handler(command, command_split)
     return
 
 #all usable commands
@@ -212,7 +205,7 @@ commands = {
     "exit": lambda command, command_split: sys.exit(0),
     "python": lambda command, command_split: print(sys.version),
     "echo": lambda command, command_split: print(*command_split[1:]),
-    "comms": lambda command, command_split: pprint.pprint(dict(commands), width = 5),
+    "com": lambda command, command_split: pprint.pprint(dict(commands), width = 5),
     "type": type_command,
     "web": open_website,
     "env": environ_print,
@@ -226,20 +219,19 @@ commands = {
 
 #executing commands
 def command_execute():
-    sys.stdout.write(f"{GREEN}$ {RESET}")
+    sys.stdout.write(f"[{script_directory}]{GREEN} => {RESET}")
     command = input()
     command_split = command.split(" ") 
     history.append(command)
 
+    if command_split[0] == "":
+        return
+
     if command_split[0] in commands:
         execute = commands.get(command_split[0], error_handler)
-        match command_split[0]:
-            case "history":
-                execute(command, command_split, history)
-            case _:
-                execute(command, command_split)
-    else: 
-        error_handler(command, command_split)
+        execute(command, command_split)
+    
+    else: error_handler(command, command_split)
 
 
 def main():

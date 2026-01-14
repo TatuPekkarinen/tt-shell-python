@@ -2,9 +2,7 @@
 
 ### Programmed in Python version 3.14.0 ###
 
-This project is a small command-line shell written in Python. It supports a few basic built-in commands and can also run executable files from the current directory. The goal is to give a simple, lightweight example of how a shell parses user input and decides what action to take.
-
-Should work cross platform atleast on Linux and Windows from personal experience.
+Monolithically written Python shell with various functionalities. Using OS-level libraries and subprocesses along with other interesting libraries. Usable for actual purposes or open source tinkering. 
 
 ### LIST OF USABLE COMMANDS WITH EXAMPLES ###
 
@@ -115,7 +113,7 @@ history clear
 ### Commands that are for debugging and basically useless for most ###
 
 ```
-$ comms
+$ com
 {print of the commands dictionary}
 
 $ env
