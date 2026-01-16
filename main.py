@@ -252,13 +252,13 @@ def command_execute():
 
     try:
         command = input()
+        history.append(command)
         if command == "": return
         try: command_split = shlex.split(command) 
         except ValueError: 
             print(f"{WARNING}Invalid input{RESET} => {command}")
             return
-        history.append(command)
-
+        
         for element in range(len(command_split)):
             if len(command_split[element]) >= 63:
                 print(f"{WARNING}Character too long{RESET} / Limit => 63")
