@@ -228,20 +228,30 @@ commands = {
 
 #executing commands
 def command_execute():
+
     sys.stdout.write(f"[{script_directory}]{GREEN} => {RESET}")
-    command = input()
-    command_split = command.split(" ") 
-    history.append(command)
+    try:
+        command = input()
 
-    if command_split[0] == "":
-        return
+        if command == "": return
 
-    if command_split[0] in commands:
-        execute = commands.get(command_split[0], error_handler)
-        execute(command, command_split)
+        command_split = command.split(" ") 
+        history.append(command)
+
+        for element in range(len(command_split)):
+            if len(command_split[element]) >= 63:
+                print(f"\n{WARNING}Character too long{RESET} / Limit => 63")
+                return
     
-    else: error_handler(command, command_split)
+        if command_split[0] in commands:
+            execute = commands.get(command_split[0], error_handler)
+            execute(command, command_split)
+        
+        else: error_handler(command, command_split)
 
+    except KeyboardInterrupt: 
+        print(f"\n{WARNING}Keyboard interrupt received{RESET}")
+        return
 
 def main():
     date = datetime.datetime.now()
