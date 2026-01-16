@@ -99,15 +99,13 @@ def execute_file(command, command_split):
 
 #website opener
 def open_website(command, command_split):
-    def port_valid(port: int) -> bool:
-        return 0 <= port <= 65535
     match len(command_split):
         case 2:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(5)
 
-            try:
-                HOST = socket.gethostbyname(str(command_split[1]))
+            try: HOST = socket.gethostbyname(str(command_split[1]))
+
             except socket.gaierror:
                 print(f"{WARNING}socket.gaierror{RESET} / Unable to open website")
                 return
@@ -122,6 +120,7 @@ def open_website(command, command_split):
 
             else: print(f"{WARNING}Connection failed{RESET} / Unable to open website")
             return
+        
         case _: error_handler(command, command_split)
     
 #morph strings
