@@ -1,4 +1,5 @@
 import pprint
+import shlex
 import time, datetime
 import sys, os, shutil
 import subprocess, webbrowser
@@ -90,16 +91,18 @@ def execute_file(command, command_split):
         error_handler(command, command_split)
         return
     
+    not_found = lambda command_split: print(f"{WARNING}{command_split[1]} file not found in => PATH{RESET}")
+
     execute_path = shutil.which(command_split[1])
     if execute_path is None:
-        print(f"{WARNING}{command_split[1]} file not found in => PATH{RESET}")
+        not_found(command_split)
         return
     
     if os.access(str(execute_path), os.X_OK):
-        print(f"{GREEN}Opening the file /{RESET}", execute_path)
+        print(f"{GREEN}Opening file =>{RESET} {execute_path}")
         time.sleep(1)
         subprocess.run(execute_path)
-    else: print(f"{WARNING}{command_split[1]} file not found in => PATH{RESET}")
+    else: not_found(command_split)
     return
 
 #website opener
@@ -152,7 +155,7 @@ def type_command(command, command_split):
                 return 
             
             else: error_handler(command, command_split)
-        case _: print(f"{WARNING}invalid arguments {RESET}: 1 given / 2 expected")
+        case _: print(f"{WARNING}invalid arguments{RESET} => 1 given / 2 expected")
     return
 
 #morph strings
@@ -231,12 +234,15 @@ commands = {
 
 #executing commands
 def command_execute():
-    sys.stdout.write(f"[{script_directory}]{GREEN} => {RESET}")
+    sys.stdout.write(f"[{script_directory}/{sys.argv[0]}]{GREEN} => {RESET}")
 
     try:
         command = input()
         if command == "": return
-        command_split = command.split(" ") 
+        try: command_split = shlex.split(command) 
+        except ValueError: 
+            print(f"{WARNING}Invalid input{RESET} => {command}")
+            return
         history.append(command)
 
         for element in range(len(command_split)):
@@ -251,7 +257,7 @@ def command_execute():
         else: error_handler(command, command_split)
 
     except KeyboardInterrupt: 
-        print(f"\n{WARNING}Keyboard interrupt => received{RESET}")
+        print(f"\n{WARNING}Keyboard interrupt{RESET}")
         return
 
 def main():
