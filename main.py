@@ -18,7 +18,7 @@ script_directory = Path(__file__).parent
 #global deque of command history
 history = deque(maxlen=25)
 
-#error handler
+#error handler (work needed)
 def error_handler(command, command_split):
     print(f"{WARNING}{command}: command not found{RESET}")
     return
@@ -58,7 +58,7 @@ def connection_scan(command, command_split):
                     print(f"Port ({port_range}) invalid / {WARNING}Not in range{RESET}")
                     sock.close()
                     return
-
+                
                 current_port = PORT
                 status = sock.connect_ex((LOCALHOST, PORT))
                 scan()  
@@ -107,12 +107,12 @@ def open_website(command, command_split):
             try: HOST = socket.gethostbyname(str(command_split[1]))
 
             except socket.gaierror:
-                print(f"{WARNING}socket.gaierror{RESET} / Unable to open website")
+                print(f"{WARNING}exception => socket.gaierror{RESET} / Unable to open website")
                 return
             
-            PORT = 443
-            print(f"CONNECTION TEST => {GREEN}Connection to {HOST} from {PORT}{RESET}")
-            status = sock.connect_ex((HOST, 443))
+            HTTP_PORT = 443
+            print(f"CONNECTION TEST => {GREEN}Connection to {HOST} from {HTTP_PORT}{RESET}")
+            status = sock.connect_ex((HOST, HTTP_PORT))
 
             if status == 0:
                 print(f"CONNECTION SUCCESFUL => {GREEN}Accessing website{RESET} / {command_split[1]}")
@@ -123,6 +123,34 @@ def open_website(command, command_split):
         
         case _: error_handler(command, command_split)
     
+#environment variables   
+def environ_print(command, command_split):
+    if len(command_split) == 1:
+            envar = os.environ
+            pprint.pprint(dict(envar), width=5, indent=5) 
+    else:  error_handler(command, command_split)
+    return
+
+#builtin checker
+def type_command(command, command_split):
+    def file_check() -> bool:
+        if type_file is not None:
+            return os.access(type_file, os.X_OK)
+
+    match len(command_split):
+        case 2:
+            type_file = shutil.which(command_split[1])
+            if command_split[1] in commands:
+                print(f"{command_split[1]} // {commands.get(command_split[1])}")
+                return  
+
+            if file_check() == True:
+                print(f"{command_split[1]} => {type_file}")
+                return 
+            
+            else: error_handler(command, command_split)
+        case _: print(f"{WARNING}invalid arguments {RESET}: 1 given / 2 expected")
+
 #morph strings
 def morph_command(command, command_split):
     morph = list(str(command_split[2]))
@@ -166,34 +194,6 @@ def morph_command(command, command_split):
         print(f"{GREEN}{morph} <=> {target}{RESET}")
         return
 
-#environment variables   
-def environ_print(command, command_split):
-    if len(command_split) == 1:
-            envar = os.environ
-            pprint.pprint(dict(envar), width=5, indent=5) 
-    else:  error_handler(command, command_split)
-    return
-
-#builtin checker
-def type_command(command, command_split):
-    def file_check() -> bool:
-        if type_file is not None:
-            return os.access(type_file, os.X_OK)
-
-    match len(command_split):
-        case 2:
-            type_file = shutil.which(command_split[1])
-            if command_split[1] in commands:
-                print(f"{command_split[1]} // {commands.get(command_split[1])}")
-                return  
-
-            if file_check() == True:
-                print(f"{command_split[1]} => {type_file}")
-                return 
-            
-            else: error_handler(command, command_split)
-        case _: print(f"{WARNING}invalid arguments {RESET}: 1 given / 2 expected")
-
 #history
 def modify_history(command, command_split):
     if len(command_split) == 2:
@@ -232,15 +232,13 @@ def command_execute():
     sys.stdout.write(f"[{script_directory}]{GREEN} => {RESET}")
     try:
         command = input()
-
         if command == "": return
-
         command_split = command.split(" ") 
         history.append(command)
 
         for element in range(len(command_split)):
             if len(command_split[element]) >= 63:
-                print(f"\n{WARNING}Character too long{RESET} / Limit => 63")
+                print(f"{WARNING}Character too long{RESET} / Limit => 63")
                 return
     
         if command_split[0] in commands:

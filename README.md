@@ -93,7 +93,7 @@ Morph complete // hello
 ### history - access past command history ###
 
 ```
-- history is stored as a list with a cap of 25 max items in history
+- history is stored as a double ended queue with a cap of 25 max items in history
 
 history 
 (prints out command history)
