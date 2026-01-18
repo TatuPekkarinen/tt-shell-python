@@ -85,12 +85,12 @@ Opening file => <path_to_file>
 
 
 
-# Morph Command
-Transforms one string into another step by step
+# Change directory
+changes current working directory
 ```
-[/path/to/tt-shell-python/main.py] => morph <source> <target>
-<intermediate transformations>
-Morph complete // <target>
+[/home/--/shell/tt-shell-python] => change /home
+[/home] => change reset
+[/home/--/shell/tt-shell-python] =>
 ```
 
 

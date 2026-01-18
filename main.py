@@ -29,15 +29,17 @@ def scan(current_port, sock_data, status, sock):
     sock.close()
     return
 
-#error handler
+#general error handler (Work in progress)
 def error_handler(command, command_split):
     print(f"{WARNING}Command not found{RESET} => {command}")
+    command_split.clear()
     return
 
 #connectivity tester and port scanner
 def connection_portal(command, command_split):
     def port_valid(port: int) -> bool:
-        return 0 <= port <= 65535
+        maximum_port = 65535
+        return 0 <= port <= maximum_port
 
     if len(command_split) > 2:
         file_path = script_directory / 'socket.json'
@@ -53,6 +55,7 @@ def connection_portal(command, command_split):
             for port_iterator in range(int(command_split[2]), int(command_split[3]) + 1):
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.settimeout(0.5)
+
                 LOCALHOST = '127.0.0.1'
                 PORT = int(port_iterator)
 
@@ -64,11 +67,17 @@ def connection_portal(command, command_split):
                 current_port = PORT
                 status = sock.connect_ex((LOCALHOST, PORT))
                 scan(current_port, sock_data, status, sock)  
+                return
 
         else:   
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(5)
-            HOST = socket.gethostbyname(str(command_split[1]))
+
+            try: HOST = socket.gethostbyname(str(command_split[1]))
+            except socket.gaierror: 
+                print(f"{WARNING}exception => socket.gaierror{RESET} / Unable to open website")
+                return
+            
             PORT = int(command_split[2])
 
             if not port_valid(PORT):
@@ -77,13 +86,15 @@ def connection_portal(command, command_split):
                 return
             
             print(f"{GREEN}connnecting to {HOST} from {PORT}{RESET}")
-
             current_port = PORT
             status = sock.connect_ex((HOST, PORT))
-            if status >= 0: scan(current_port, sock_data, status, sock)
-            else: error_handler(command, command_split)
-    else: error_handler(command, command_split)
-    return
+            if status == 0: scan(current_port, sock_data, status, sock)
+            else: scan(current_port, sock_data, status, sock) 
+            return
+
+    else: 
+        error_handler(command, command_split)
+        return
 
 #executing file
 def execute_file(command, command_split):
@@ -91,19 +102,21 @@ def execute_file(command, command_split):
         error_handler(command, command_split)
         return
     
-    not_found = lambda command_split: print(f"{WARNING}{command_split[1]} file not found in => PATH{RESET}")
-
     execute_path = shutil.which(command_split[1])
+
     if execute_path is None:
-        not_found(command_split)
+        print(f"{WARNING}File not found{RESET} => {command_split[1]}")
         return
     
     if os.access(str(execute_path), os.X_OK):
         print(f"{GREEN}Opening file =>{RESET} {execute_path}")
         time.sleep(1)
-        subprocess.run(execute_path)
-    else: not_found(command_split)
-    return
+        subprocess.run(execute_path, shell=False)
+        return
+
+    else: 
+        error_handler(command, command_split)
+        return
 
 #website opener
 def open_website(command, command_split):
@@ -117,25 +130,32 @@ def open_website(command, command_split):
                 print(f"{WARNING}exception => socket.gaierror{RESET} / Unable to open website")
                 return
             
-            HTTP_PORT = 443
-            print(f"CONNECTION TEST => {GREEN}Connection to {HOST} from {HTTP_PORT}{RESET}")
-            status = sock.connect_ex((HOST, HTTP_PORT))
+            HTTPS_PORT = 443
+
+            print(f"CONNECTION TEST => {GREEN}Connection to {HOST} from {HTTPS_PORT}{RESET}")
+            status = sock.connect_ex((HOST, HTTPS_PORT))
+
             if status == 0:
                 print(f"CONNECTION SUCCESFUL => {GREEN}Accessing website{RESET} / {command_split[1]}")
                 webbrowser.open(command_split[1])
+                return
 
-            else: print(f"{WARNING}Connection failed{RESET} / Unable to open website")
+            else: 
+                print(f"{WARNING}Connection failed{RESET} / Unable to open website")
+                return
+        case _: 
+            error_handler(command, command_split)
             return
-        case _: error_handler(command, command_split)
-    return
     
 #environment variables   
 def environ_print(command, command_split):
     if len(command_split) == 1:
             envar = os.environ
             pprint.pprint(dict(envar), width=5, indent=5) 
-    else: error_handler(command, command_split)
-    return
+            return
+    else: 
+        error_handler(command, command_split)
+        return
 
 #builtin checker
 def type_command(command, command_split):
@@ -154,49 +174,34 @@ def type_command(command, command_split):
                 print(f"{command_split[1]} => {type_file}")
                 return 
             
-            else: error_handler(command, command_split)
-        case _: print(f"{WARNING}invalid arguments{RESET} => 1 given / 2 expected")
-    return
-
-#morph strings
-def morph_command(command, command_split):
-    morph = list(str(command_split[2]))
-    target = list(str(command_split[1]))
-        
-    #shift into positive
-    morph_value = len(morph) 
-    target_value = len(target)
-    value = morph_value - target_value
-
-    if value < 0:
-        absolute_value = value * -1
-    if value > 0:
-        absolute_value = value
-
-    if morph is not target:
-        for number in range(absolute_value):
-            if len(morph) != len(target):
-                for iterator in range(absolute_value):
-                    if len(target) > len(morph):
-                        morph.append(target[iterator])
-                        result = "".join(morph)
-                        print(f"{GREEN}{result}{RESET} <= +1")
-
-                    if len(target) < len(morph):
-                        result = "".join(morph)
-                        print(f"{WARNING}{result}{RESET} <= -1")
-                        morph.pop(-1)
-
-            result = "".join(morph)
-            print(f"{GREEN}{result}{RESET} // SHIFT")
-            if morph == target:
-                print(f"Morph complete => {GREEN}{result}{RESET}")
+            else: 
+                error_handler(command, command_split)
                 return
+        case _: 
+            print(f"{WARNING}invalid arguments{RESET} => 1 given / 2 expected")
+            return
 
-            if len(morph) == len(target):
-                morph[number] = target[number]
+#change directory
+def change_directory(command, command_split):
+    directory = str(command_split[1])
+    if len(command_split) > 1:
+
+        if command_split[1] == 'reset':
+            os.chdir(script_directory)
+            return
+
+        if os.access(str(directory), os.X_OK):
+            try: 
+                os.chdir(str(directory))
+                return
+            except: 
+                print(f"{WARNING}Exception raised{RESET} => not a directory")
+                return
+        else: 
+            print(f"{WARNING}Unable to find the directory{RESET} => {directory}")
+            return
     else: 
-        print(f"{GREEN}{morph} <=> {target}{RESET}")
+        error_handler(command, command_split)
         return
 
 #history
@@ -214,6 +219,7 @@ def modify_history(command, command_split):
             return
     return
 
+#wrappers for external tools
 def wrappers(command, command_split):
     run_failure = lambda: print(f"{WARNING}Failed to run command{RESET} => {command}")
     match command_split[0]:
@@ -241,27 +247,28 @@ commands = {
     "web": open_website,
     "env": environ_print,
     "file": execute_file,
+    "change": change_directory,
     "con": connection_portal,
-    "history": modify_history,
-    "morph": morph_command
+    "history": modify_history
 }
 
 #executing commands
-def command_execute():
-    sys.stdout.write(f"[{script_directory}]{GREEN} => {RESET}")
+def command_execute(current_directory):
+    sys.stdout.write(f"[{current_directory}]{GREEN} => {RESET}")
 
     try:
         command = input()
         history.append(command)
-        if command == "": return
-        try: command_split = shlex.split(command) 
+        if command == '': return
+        try:command_split = shlex.split(command) 
+
         except ValueError: 
             print(f"{WARNING}Invalid input{RESET} => {command}")
             return
         
         for element in range(len(command_split)):
             if len(command_split[element]) >= 63:
-                print(f"{WARNING}Character too long{RESET} / Limit => 63")
+                print(f"{WARNING}Command too long{RESET} => 63 (limit)")
                 return
     
         if command_split[0] in commands:
@@ -278,7 +285,8 @@ def main():
     date = datetime.datetime.now()
     print(f"{TITLE1}tt-shell [{sys.argv[0]}]{RESET} / {TITLE2}{date}{RESET}")
     while True:
-        command_execute()
+        current_directory = os.getcwd()
+        command_execute(current_directory)
 
 if __name__ == "__main__":
     main()
