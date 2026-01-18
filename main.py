@@ -21,15 +21,15 @@ history = deque(maxlen=25)
 
 def scan(current_port, sock_data, status, sock):
     if status == 0:
-        print(f"Port / {current_port} / {GREEN}{sock_data[str(status)]}{RESET}")
-    elif status > 0: 
-        print(f"Port / {current_port} / {WARNING}{sock_data[str(status)]}{RESET}")
+        print(f"Port >>> {current_port} >>> {GREEN}{sock_data[str(status)]}{RESET}")
+    if status > 0: 
+        print(f"Port >>> {current_port} >>> {WARNING}{sock_data[str(status)]}{RESET}")
     sock.close()
     return
 
 #general error handler (Work in progress)
 def error_handler(command, command_split):
-    print(f"{WARNING}Command not found{RESET} => {command}")
+    print(f"{WARNING}Command Not Found{RESET} <<< {command}")
     return
 
 #connectivity tester and port scanner
@@ -46,10 +46,10 @@ def connection_portal(command, command_split):
 
         if command_split[1] == 'range':
             if len(command_split) <= 3:
-                print(f"{WARNING}invalid arguments{RESET} => 3 given / 4 expected")
+                print(f"{WARNING}Invalid Arguments{RESET} (Given >>> 4 Expected)")
                 return
 
-            print(f"{GREEN}Starting scan from {command_split[2]} to {command_split[3]}{RESET}")
+            print(f"{GREEN}Starting Scan From {command_split[2]} To {command_split[3]}{RESET}")
             portrange_minimum = int(command_split[2])
             portrange_maximum = int(command_split[3]) + 1
 
@@ -63,11 +63,11 @@ def connection_portal(command, command_split):
                 current_port = PORT
 
                 if PORT == int(maximum_port) + 1:
-                    print(f"{GREEN}Scan succesful{RESET} => returning")
+                    print(f"{GREEN}Scan Succesful{RESET} >>> Returning")
                     portscan_end = True
 
                 if port_valid(PORT) == False:
-                    print(f"{WARNING}Port ({port_iterator}) invalid{RESET} => Not in range")
+                    print(f"{WARNING}Port ({port_iterator}) Invalid{RESET} (Not In Range)")
                     sock.close()
                     return
                 
@@ -82,17 +82,17 @@ def connection_portal(command, command_split):
 
             try: HOST = socket.gethostbyname(str(command_split[1]))
             except socket.gaierror: 
-                print(f"{WARNING}exception => socket.gaierror{RESET} / Unable to open website")
+                print(f"{WARNING}socket.gaierror{RESET} / Unable To Open Website")
                 return
             
             PORT = int(command_split[2])
 
             if not port_valid(PORT):
-                print(f"{WARNING}Port invalid{RESET} / (Not in range 0/65535)")
+                print(f"{WARNING}Port Invalid{RESET} / (Not In Range 0-65535)")
                 sock.close()
                 return
             
-            print(f"{GREEN}connnecting to {HOST} from {PORT}{RESET}")
+            print(f"{GREEN}Connnecting To {HOST} From {PORT}{RESET}")
             current_port = PORT
             status = sock.connect_ex((HOST, PORT))
             if status == 0: scan(current_port, sock_data, status, sock)
@@ -112,15 +112,15 @@ def execute_file(command, command_split):
     execute_path = shutil.which(command_split[1])
 
     if execute_path is None:
-        print(f"{WARNING}File not found{RESET} => {command_split[1]}")
+        print(f"{WARNING}File Not Found{RESET} >>> ({command_split[1]})")
         return
     
     if os.access(str(execute_path), os.X_OK):
-        print(f"{GREEN}Opening file =>{RESET} {execute_path}")
+        print(f"{GREEN}Opening File{RESET} >>> ({execute_path})")
         time.sleep(1)
         subprocess.run(execute_path, shell=False)
         return
-
+    
     else: 
         error_handler(command, command_split)
         return
@@ -131,24 +131,23 @@ def open_website(command, command_split):
         case 2:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(5)
-            try: HOST = socket.gethostbyname(str(command_split[1]))
 
+            HTTPS_PORT = 443
+            try: HOST = socket.gethostbyname(str(command_split[1]))
             except socket.gaierror:
-                print(f"{WARNING}exception => socket.gaierror{RESET} / Unable to open website")
+                print(f"{WARNING}socket.gaierror{RESET} / Unable To Open Website")
                 return
             
-            HTTPS_PORT = 443
-
-            print(f"CONNECTION TEST => {GREEN}Connection to {HOST} from {HTTPS_PORT}{RESET}")
+            print(f"Connection Test >>> {GREEN}Connection To {HOST} From {HTTPS_PORT}{RESET}")
             status = sock.connect_ex((HOST, HTTPS_PORT))
 
             if status == 0:
-                print(f"CONNECTION SUCCESFUL => {GREEN}Accessing website{RESET} / {command_split[1]}")
+                print(f"Connection Succesful >>> {GREEN}Accessing Website{RESET} >>> {command_split[1]}")
                 webbrowser.open(command_split[1])
                 return
 
             else: 
-                print(f"{WARNING}Connection failed{RESET} / Unable to open website")
+                print(f"{WARNING}Connection Failed{RESET} / Unable To Open Website")
                 return
         case _: 
             error_handler(command, command_split)
@@ -175,38 +174,33 @@ def type_command(command, command_split):
             type_file = shutil.which(command_split[1])
             if command_split[1] in commands:
                 print(f"{command_split[1]} // {commands.get(command_split[1])}")
-                return  
-
+                return
             if file_check() == True:
                 print(f"{command_split[1]} => {type_file}")
                 return 
-            
             else: 
                 error_handler(command, command_split)
                 return
         case _: 
-            print(f"{WARNING}invalid arguments{RESET} => 1 given / 2 expected")
+            print(f"{WARNING}Invalid Arguments{RESET} (1 given >>> 2 expected)")
             return
 
-#change directory
+#change current working directory
 def change_directory(command, command_split):
-    directory = str(command_split[1])
     if len(command_split) > 1:
 
+        directory = str(command_split[1])
         if command_split[1] == 'reset':
             os.chdir(script_directory)
             return
-
+        
         if os.access(str(directory), os.X_OK):
             try: 
                 os.chdir(str(directory))
                 return
-            except: 
-                print(f"{WARNING}Exception raised{RESET} => not a directory")
+            except FileNotFoundError: 
+                print(f"Exception - {WARNING}FileNotFoundError{RESET}")
                 return
-        else: 
-            print(f"{WARNING}Unable to find the directory{RESET} => {directory}")
-            return
     else: 
         error_handler(command, command_split)
         return
@@ -217,24 +211,22 @@ def modify_history(command, command_split):
         match command_split[1]:
             case 'clear':
                 history.clear()
-            case _: error_handler(command, command_split)
+                return
+            case _: 
+                error_handler(command, command_split)
+                return
 
     if len(command_split) == 1:
         if command_split[0] == 'history':
-            print(F"\n{GREEN}Command history{RESET}")
+            print(F"\n{GREEN}Command History{RESET}")
             for element in history: print(f"{GREEN}=>{RESET} {element}")
             return
-    return
 
 #wrappers for external tools
 def wrappers(command, command_split):
-    run_failure = lambda: print(f"{WARNING}Failed to run command{RESET} => {command}")
+    run_failure = lambda: print(f"{WARNING}Failed to run Command{RESET} => {command}")
     match command_split[0]:
-        case 'curl':
-            try: subprocess.run(command_split)
-            except: run_failure()
-            return
-        case 'git': 
+        case 'curl' | 'git':
             try: subprocess.run(command_split)
             except: run_failure()
             return
@@ -242,7 +234,6 @@ def wrappers(command, command_split):
             error_handler(command, command_split)
             return
             
-
 #all usable commands
 commands = {
     "exit": lambda command, command_split: sys.exit(0),
@@ -262,18 +253,16 @@ commands = {
 
 #executing commands
 def command_execute(current_directory):
-    sys.stdout.write(f"[{current_directory}]{GREEN} => {RESET}")
+    sys.stdout.write(f"[{current_directory}]{GREEN} >>> {RESET}")
 
     try:
         command = input()
         history.append(command)
         if command == '': return
-
-        try:
-            command_split = shlex.split(command) 
+        try: command_split = shlex.split(command) 
 
         except ValueError: 
-            print(f"{WARNING}Invalid input{RESET} => {command}")
+            print(f"Exception - {WARNING}ValueError{RESET} - {command}")
             return
         
         for element in range(len(command_split)):
@@ -288,7 +277,7 @@ def command_execute(current_directory):
         else: error_handler(command, command_split)
 
     except KeyboardInterrupt: 
-        print(f"\n{WARNING}Keyboard interrupt{RESET}")
+        print(f"\n{WARNING}KeyboardInterrupt{RESET}")
         return
 
 def main():
