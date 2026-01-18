@@ -37,8 +37,9 @@ def error_handler(command, command_split):
 
 #connectivity tester and port scanner
 def connection_portal(command, command_split):
+
+    maximum_port = 65535
     def port_valid(port: int) -> bool:
-        maximum_port = 65535
         return 0 <= port <= maximum_port
 
     if len(command_split) > 2:
@@ -52,22 +53,31 @@ def connection_portal(command, command_split):
                 return
 
             print(f"{GREEN}Starting scan from {command_split[2]} to {command_split[3]}{RESET}")
-            for port_iterator in range(int(command_split[2]), int(command_split[3]) + 1):
+            portrange_minimum = int(command_split[2])
+            portrange_maximum = int(command_split[3]) + 1
+
+            for port_iterator in range(portrange_minimum, portrange_maximum):
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.settimeout(0.5)
 
+                portscan_end = False
                 LOCALHOST = '127.0.0.1'
                 PORT = int(port_iterator)
+                current_port = PORT
 
-                if not port_valid(PORT):
-                    print(f"Port ({port_iterator}) invalid / {WARNING}Not in range{RESET}")
+                if PORT == int(maximum_port) + 1:
+                    print(f"{GREEN}Scan succesful{RESET} => returning")
+                    portscan_end = True
+
+                if port_valid(PORT) == False:
+                    print(f"{WARNING}Port ({port_iterator}) invalid{RESET} => Not in range")
                     sock.close()
                     return
                 
-                current_port = PORT
+                elif portscan_end == True: return
+                
                 status = sock.connect_ex((LOCALHOST, PORT))
                 scan(current_port, sock_data, status, sock)  
-                return
 
         else:   
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -234,6 +244,7 @@ def wrappers(command, command_split):
         case _: 
             error_handler(command, command_split)
             return
+            
 
 #all usable commands
 commands = {
