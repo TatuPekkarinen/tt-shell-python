@@ -52,29 +52,30 @@ def connection_portal(command, command_split):
             print(f"{GREEN}Starting Scan From {command_split[2]} To {command_split[3]}{RESET}")
             portrange_minimum = int(command_split[2])
             portrange_maximum = int(command_split[3]) + 1
+            try:
+                for port_iterator in range(portrange_minimum, portrange_maximum):
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.settimeout(0.5)
 
-            for port_iterator in range(portrange_minimum, portrange_maximum):
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.settimeout(0.5)
+                    portscan_end = False
+                    LOCALHOST = '127.0.0.1'
+                    PORT = int(port_iterator)
+                    current_port = PORT
 
-                portscan_end = False
-                LOCALHOST = '127.0.0.1'
-                PORT = int(port_iterator)
-                current_port = PORT
+                    if PORT == int(maximum_port) + 1:
+                        print(f"{GREEN}Scan Succesful{RESET} >>> Returning")
+                        portscan_end = True
 
-                if PORT == int(maximum_port) + 1:
-                    print(f"{GREEN}Scan Succesful{RESET} >>> Returning")
-                    portscan_end = True
-
-                if port_valid(PORT) == False:
-                    print(f"{WARNING}Port ({port_iterator}) Invalid{RESET} (Not In Range)")
-                    sock.close()
-                    return
-                
-                elif portscan_end == True: return
-                
-                status = sock.connect_ex((LOCALHOST, PORT))
-                scan(current_port, sock_data, status, sock)  
+                    if port_valid(PORT) == False:
+                        print(f"{WARNING}Port ({port_iterator}) Invalid{RESET} (Not In Range)")
+                        sock.close()
+                        return
+                    
+                    elif portscan_end == True: return
+                    
+                    status = sock.connect_ex((LOCALHOST, PORT))
+                    scan(current_port, sock_data, status, sock)  
+            except KeyboardInterrupt: print("{WARNING}KeyboardInterrupt{RESET}")
 
         else:   
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
