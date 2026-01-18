@@ -24,15 +24,12 @@ def scan(current_port, sock_data, status, sock):
         print(f"Port / {current_port} / {GREEN}{sock_data[str(status)]}{RESET}")
     elif status > 0: 
         print(f"Port / {current_port} / {WARNING}{sock_data[str(status)]}{RESET}")
-    else: 
-        print(f"Port / {current_port} / {WARNING}{sock_data[str(status)]}{RESET}")
     sock.close()
     return
 
 #general error handler (Work in progress)
 def error_handler(command, command_split):
     print(f"{WARNING}Command not found{RESET} => {command}")
-    command_split.clear()
     return
 
 #connectivity tester and port scanner
@@ -271,7 +268,9 @@ def command_execute(current_directory):
         command = input()
         history.append(command)
         if command == '': return
-        try:command_split = shlex.split(command) 
+
+        try:
+            command_split = shlex.split(command) 
 
         except ValueError: 
             print(f"{WARNING}Invalid input{RESET} => {command}")
