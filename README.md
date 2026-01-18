@@ -2,7 +2,7 @@
 
 ### Programmed in Python version 3.14.0 ###
 
-Monolithically written Python shell with various functionalities. Using OS-level libraries and subprocesses along with other interesting libraries. Parses with Shlex and it is possible to use Git and Curl with this shell. Usable for actual purposes, open source tinkering or whatever. 
+Monolithically written Python shell with various functionalities. Using OS-level libraries and subprocesses along with other interesting libraries. Parses with Shlex and it is possible to use Git and Curl with this shell. Usable for actual purposes, open source tinkering or whatever. My first real software project and this has taught me a lot about maintainability, the weight of decisions and technical debt.  
 
 # tt-shell-python Documentation
 
