@@ -52,36 +52,40 @@ def connection_portal(command, command_split):
             print(f"{GREEN}Starting Scan From {command_split[2]} To {command_split[3]}{RESET}")
             portrange_minimum = int(command_split[2])
             portrange_maximum = int(command_split[3]) + 1
+            
             try:
                 for port_iterator in range(portrange_minimum, portrange_maximum):
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     sock.settimeout(0.5)
 
-                    portscan_end = False
+                    portscan_state = False
                     LOCALHOST = '127.0.0.1'
                     PORT = int(port_iterator)
                     current_port = PORT
 
                     if PORT == int(maximum_port) + 1:
                         print(f"{GREEN}Scan Succesful{RESET} >>> Returning")
-                        portscan_end = True
+                        portscan_state = True
 
                     if port_valid(PORT) == False:
                         print(f"{WARNING}Port ({port_iterator}) Invalid{RESET} (Not In Range)")
                         sock.close()
                         return
                     
-                    elif portscan_end == True: return
+                    elif portscan_state == True: return
                     
                     status = sock.connect_ex((LOCALHOST, PORT))
                     scan(current_port, sock_data, status, sock)  
-            except KeyboardInterrupt: print("{WARNING}KeyboardInterrupt{RESET}")
+
+            except KeyboardInterrupt: 
+                print("{WARNING}KeyboardInterrupt{RESET}")
 
         else:   
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(5)
 
-            try: HOST = socket.gethostbyname(str(command_split[1]))
+            try:
+                HOST = socket.gethostbyname(str(command_split[1]))
             except socket.gaierror: 
                 print(f"{WARNING}socket.gaierror{RESET} / Unable To Open Website")
                 return
@@ -134,6 +138,7 @@ def open_website(command, command_split):
             sock.settimeout(5)
 
             HTTPS_PORT = 443
+
             try: HOST = socket.gethostbyname(str(command_split[1]))
             except socket.gaierror:
                 print(f"{WARNING}socket.gaierror{RESET} / Unable To Open Website")
@@ -164,7 +169,7 @@ def environ_print(command, command_split):
         error_handler(command, command_split)
         return
 
-#builtin checker
+#check builtin commands
 def type_command(command, command_split):
     def file_check() -> bool:
         if type_file is not None:
@@ -190,47 +195,51 @@ def type_command(command, command_split):
 def change_directory(command, command_split):
     if len(command_split) > 1:
 
-        directory = str(command_split[1])
+        mutable_directory = str(command_split[1])
         if command_split[1] == 'reset':
             os.chdir(script_directory)
             return
         
-        if os.access(str(directory), os.X_OK):
+        if os.access(str(mutable_directory), os.X_OK):
             try: 
-                os.chdir(str(directory))
+                os.chdir(str(mutable_directory))
                 return
+            
             except FileNotFoundError: 
                 print(f"Exception - {WARNING}FileNotFoundError{RESET}")
                 return
     else: 
         error_handler(command, command_split)
         return
-
-#history
-def modify_history(command, command_split):
-    if len(command_split) == 2:
-        match command_split[1]:
-            case 'clear':
+    
+#modify and access history deque
+def shell_history(command, command_split):
+    match len(command_split):
+        case 1:
+            if command_split[0] == 'history':    
+                print(f"{GREEN} >> Command History{RESET}")
+                for element in history:
+                    print(f">> {element}") 
+        case 2: 
+            if command_split[1] == 'clear':
                 history.clear()
-                return
-            case _: 
-                error_handler(command, command_split)
-                return
-
-    if len(command_split) == 1:
-        if command_split[0] == 'history':
-            print(F"\n{GREEN}Command History{RESET}")
-            for element in history: print(f"{GREEN}=>{RESET} {element}")
+                return       
+        case _:
+            error_handler(command, command_split)
             return
 
-#wrappers for external tools
-def wrappers(command, command_split):
-    run_failure = lambda: print(f"{WARNING}Failed to run Command{RESET} => {command}")
+#external tool wrappers
+def external_tools(command, command_split):
+    invalid_argument = lambda: print(f"{WARNING}subprocess.CalledProcessError (Invalid Arguments){RESET} >>> {command}")
     match command_split[0]:
         case 'curl' | 'git':
-            try: subprocess.run(command_split)
-            except: run_failure()
-            return
+            try: 
+                subprocess.run(command_split, shell=False, check=True)
+                return
+            
+            except subprocess.CalledProcessError: 
+                invalid_argument()
+                return
         case _: 
             error_handler(command, command_split)
             return
@@ -241,15 +250,15 @@ commands = {
     "python": lambda command, command_split: print(sys.version),
     "echo": lambda command, command_split: print(*command_split[1:]),
     "com": lambda command, command_split: pprint.pprint(dict(commands), width = 5),
-    "git": wrappers,
-    "curl": wrappers,
+    "git": external_tools,
+    "curl": external_tools,
     "type": type_command,
     "web": open_website,
     "env": environ_print,
     "file": execute_file,
     "change": change_directory,
     "con": connection_portal,
-    "history": modify_history
+    "history": shell_history
 }
 
 #executing commands
@@ -280,7 +289,6 @@ def command_execute(current_directory):
     except KeyboardInterrupt: 
         print(f"\n{WARNING}KeyboardInterrupt{RESET}")
         return
-
 def main():
     date = datetime.datetime.now()
     print(f"{TITLE1}tt-shell [{sys.argv[0]}]{RESET} / {TITLE2}{date}{RESET}")
