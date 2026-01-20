@@ -19,13 +19,13 @@ Network Status >> <status>
 
 
 ### Connection Commands
-Single Port Connection
+*Single Port Connection*
 ```
 [/path/to/tt-shell-python/main.py] >>> con <host> <port>
 connecting to <host_ip> from <port>
 Port / <port> / RESPONDED
 ```
-Port Range Scan
+*Ranged Localhost Port Scan*
 ```
 [/path/to/tt-shell-python/main.py] >>> con range <start_port> <end_port>
 Starting scan from <start_port> to <end_port>
@@ -35,7 +35,7 @@ Port / 2 / CONNECTION REFUSED
 ```
 
 ### Bluetooth monitor
-Bluetooth monitor
+*Monitors nearby Bluetooth adresses*
 ```
 [/path/to/tt-shell-python/main.py] >>> ble
 {Bluetooth devices}
@@ -45,7 +45,7 @@ Bluetooth monitor
 
 
 ### Type Command
-Checks if a command is builtin or a system executable
+*Checks if a command is builtin or a system executable*
 ```
 [/path/to/tt-shell-python/main.py] >>> type <command>
 <command> >>> <path or function info>
@@ -63,7 +63,7 @@ konsole >>> /usr/bin/konsole
 
 
 ### Echo Command
-Prints text to the shell
+*Prints text to the shell*
 ```
 [/path/to/tt-shell-python/main.py] >>> echo "Hello world!"
 Hello world!
@@ -72,17 +72,17 @@ Hello world!
 
 
 ### Web Command
-Opens a website and checks connectivity
+*Opens a website and checks connectivity*
 ```
 [/path/to/tt-shell-python/main.py] >>> web <website>
-CONNECTION TEST >>> Connection to <host_ip> from <port>
+CONNECTION TEST >>> Connection to <host_ip> from <443>
 CONNECTION SUCCESSFUL >>> Accessing website / <website>
 ```
 
 
 
 ### File Execution
-Runs a system file
+*Runs a system file*
 ```
 [/path/to/tt-shell-python/main.py] >>> file <filename>
 Opening file >>> <path_to_file>
@@ -91,7 +91,7 @@ Opening file >>> <path_to_file>
 
 
 ### Change directory
-changes current working directory
+*changes current working directory*
 ```
 [/home/--/shell/tt-shell-python] >>> change /home
 [/home] >>> change reset
@@ -101,7 +101,7 @@ changes current working directory
 
 
 ### Command History
-View and clear past commands
+*View and clear past commands*
 ```
 [/path/to/tt-shell-python/main.py] >>> history
 Command history
@@ -115,7 +115,7 @@ Command history
 
 
 ### Git Commands
-Supports Git commands via wrapper
+*Supports Git commands via wrapper*
 
 ```
 [/path/to/tt-shell-python/main.py] >>> git
@@ -128,7 +128,7 @@ Common Git commands:
 
 
 ### cURL Wrapper
-Supports curl commands
+*Supports curl commands*
 ```
 [/path/to/tt-shell-python/main.py] >>> curl <url>
 ### Example:
@@ -141,7 +141,7 @@ Supports curl commands
 
 
 ### Debugging Commands
-com / Lists all available commands
+*Lists all available commands*
 ```
 [/path/to/tt-shell-python/main.py] >>> com
 {
@@ -160,7 +160,7 @@ com / Lists all available commands
  'web': <function>
 }
 ```
-env / Displays environment variables
+*Displays environment variables*
 ```
 [/path/to/tt-shell-python/main.py] >>> env
 {
@@ -172,7 +172,7 @@ env / Displays environment variables
  ...
 }
 ```
-python / Displays current python version
+*Displays current python version*
 ```
 [/path/to/tt-shell-python/main.py] >>> python
 [/path/to/tt-shell-python/main.py] >>> {python version}
