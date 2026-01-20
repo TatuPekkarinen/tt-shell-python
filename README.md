@@ -43,6 +43,14 @@ Port / 2 / CONNECTION REFUSED
 
 ```
 
+# Bluetooth monitor
+Bluetooth monitor
+```
+[/path/to/tt-shell-python/main.py] => ble monitor
+{Bluetooth devices}
+=> KeyboardInterrupt
+{ends monitoring}
+```
 
 
 # Type Command
