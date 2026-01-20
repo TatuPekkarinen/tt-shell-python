@@ -76,7 +76,10 @@ def connection_portal(command, command_split):
                 try:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                     sock.settimeout(0.5)
-                    LOCALHOST = '127.0.0.1' #shouldn't be changed ever
+
+                    #shouldn't be touched at all
+                    LOCALHOST = '127.0.0.1' 
+
                     PORT = int(port_iterator)
                     portscan_state = False
 
