@@ -4,12 +4,10 @@
 
 Monolithically structured Python shell with various functionalities. Using OS-level libraries and subprocesses along with other interesting libraries. Parses with Shlex and tt-shell provide the possibility to use Git and Curl inside this shell trough subprocesses. Usable for actual purposes, open source tinkering or whatever. My largest scale software project so far, tt-shell has taught me a lot about maintainability, the weight of decisions and technical debt.  
 
-#### Security caution
+### Security caution
 Not intended for any security critical usages. Not yet hardened for production and only for educational purposes.
 
-### tt-shell
-All commands are executed from the shell prompt
-
+## tt-shell
 ### Initial interface
 ```
 tt-shell / <timestamp>
