@@ -46,7 +46,7 @@ def connection_portal(command, command_split):
 
         if command_split[1] == 'range':
             if len(command_split) <= 3:
-                print(f"{WARNING}Invalid Arguments{RESET} (Given >>> 4 Expected)")
+                print(f"{WARNING}Invalid Arguments{RESET} (3 Given >>> 4 Expected)")
                 return
 
             print(f"{GREEN}Starting Scan From {command_split[2]} To {command_split[3]}{RESET}")
