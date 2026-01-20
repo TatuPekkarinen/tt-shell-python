@@ -17,19 +17,19 @@ RESET = '\033[0m'
 script_directory = Path(__file__).parent
 
 #global deque of command history
-history = deque(maxlen=25)
+history = deque(maxlen=35)
 
-def scan(current_port, sock_data, status, sock):
+def scan(PORT, sock_data, sock, status):
     if status == 0:
-        print(f"Port >>> {current_port} >>> {GREEN}{sock_data[str(status)]}{RESET}")
+        print(f"Port >>> {PORT} >>> {GREEN}{sock_data[str(status)]}{RESET}")
     if status > 0: 
-        print(f"Port >>> {current_port} >>> {WARNING}{sock_data[str(status)]}{RESET}")
+        print(f"Port >>> {PORT} >>> {WARNING}{sock_data[str(status)]}{RESET}")
     sock.close()
     return
 
-#general error handler (Work in progress)
+#general error handler
 def error_handler(command, command_split):
-    print(f"{WARNING}Command Not Found{RESET} <<< {command}")
+    print(f"{WARNING}Invalid syntax{RESET} <<< {command}")
     return
 
 #connectivity tester and port scanner
@@ -40,7 +40,7 @@ def connection_portal(command, command_split):
         return 0 <= port <= maximum_port
 
     if len(command_split) > 2:
-        file_path = script_directory / 'socket.json'
+        file_path = script_directory / 'socketErrno.json'
         with file_path.open('r') as file:
             sock_data = json.load(file)
 
@@ -50,10 +50,10 @@ def connection_portal(command, command_split):
                 return
 
             print(f"{GREEN}Starting Scan From {command_split[2]} To {command_split[3]}{RESET}")
-            portrange_minimum = int(command_split[2])
-            portrange_maximum = int(command_split[3]) + 1
+            scanrange_minimum = int(command_split[2])
+            scanrange_maximum = int(command_split[3]) + 1
             
-            for port_iterator in range(portrange_minimum, portrange_maximum):
+            for port_iterator in range(scanrange_minimum, scanrange_maximum):
 
                 try:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -62,9 +62,8 @@ def connection_portal(command, command_split):
                     portscan_state = False
                     LOCALHOST = '127.0.0.1'
                     PORT = int(port_iterator)
-                    current_port = PORT
 
-                    if PORT == int(maximum_port) + 1:
+                    if PORT == int(maximum_port):
                         print(f"{GREEN}Scan Succesful{RESET} >>> Returning")
                         portscan_state = True
 
@@ -76,10 +75,10 @@ def connection_portal(command, command_split):
                     elif portscan_state == True: return
                     
                     status = sock.connect_ex((LOCALHOST, PORT))
-                    scan(current_port, sock_data, status, sock)  
+                    scan(PORT, sock_data, sock, status)  
 
                 except KeyboardInterrupt: 
-                    print("{WARNING}KeyboardInterrupt{RESET}")
+                    print(f"{WARNING}KeyboardInterrupt{RESET}")
 
         else:   
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -99,10 +98,8 @@ def connection_portal(command, command_split):
                 return
             
             print(f"{GREEN}Connnecting To {HOST} From {PORT}{RESET}")
-            current_port = PORT
             status = sock.connect_ex((HOST, PORT))
-            if status == 0: scan(current_port, sock_data, status, sock)
-            else: scan(current_port, sock_data, status, sock) 
+            scan(PORT, sock_data, sock, status) 
             return
 
     else: 
@@ -179,10 +176,10 @@ def type_command(command, command_split):
         case 2:
             type_file = shutil.which(command_split[1])
             if command_split[1] in commands:
-                print(f"{command_split[1]} // {commands.get(command_split[1])}")
+                print(f"{command_split[1]} >>> {commands.get(command_split[1])}")
                 return
             if file_check() == True:
-                print(f"{command_split[1]} => {type_file}")
+                print(f"{command_split[1]} >>> {type_file}")
                 return 
             else: 
                 error_handler(command, command_split)
@@ -194,41 +191,29 @@ def type_command(command, command_split):
 #change current working directory
 def change_directory(command, command_split):
     if len(command_split) > 1:
+        directory = str(command_split[1])
 
-        mutable_directory = str(command_split[1])
         if command_split[1] == 'reset':
             os.chdir(script_directory)
             return
+        if not os.path.exists(directory):
+            print(f"{WARNING}No Such Path{RESET} >>> {directory}")
+            return
+        if not os.path.isdir(directory):
+            print(f"{WARNING}No Such Directory{RESET} >>> {directory}")
         
-        if os.access(str(mutable_directory), os.X_OK):
-            try: 
-                os.chdir(str(mutable_directory))
-                return
-            
-            except FileNotFoundError: 
-                print(f"Exception - {WARNING}FileNotFoundError{RESET}")
-                return
+        try: 
+            os.chdir(str(directory))
+            return
+        
+        except FileNotFoundError: 
+            print(f"Exception - {WARNING}FileNotFoundError{RESET}")
+            return
     else: 
         error_handler(command, command_split)
         return
-    
-#modify and access history deque
-def shell_history(command, command_split):
-    match len(command_split):
-        case 1:
-            if command_split[0] == 'history':    
-                print(f"{GREEN} >> Command History{RESET}")
-                for element in history:
-                    print(f">> {element}") 
-        case 2: 
-            if command_split[1] == 'clear':
-                history.clear()
-                return       
-        case _:
-            error_handler(command, command_split)
-            return
 
-#external tool wrappers
+#external tool wrappers 
 def external_tools(command, command_split):
     invalid_argument = lambda: print(f"{WARNING}subprocess.CalledProcessError (Invalid Arguments){RESET} >>> {command}")
     match command_split[0]:
@@ -241,6 +226,23 @@ def external_tools(command, command_split):
                 invalid_argument()
                 return
         case _: 
+            error_handler(command, command_split)
+            return
+        
+#modify and access history deque
+def shell_history(command, command_split):
+    match len(command_split):
+        case 1:
+            if command_split[0] == 'history':    
+                print(f"{GREEN} >> Command History{RESET}")
+                for element in history:
+                    print(f">> {element}")
+
+        case 2:
+            if command_split[1] == 'clear':
+                history.clear()
+                return       
+        case _:
             error_handler(command, command_split)
             return
             
@@ -276,7 +278,7 @@ def command_execute(current_directory):
             return
         
         for element in range(len(command_split)):
-            if len(command_split[element]) >= 63:
+            if len(command_split[element]) >= 63 or len(command) > 1024:
                 print(f"{WARNING}Command too long{RESET} => 63 (limit)")
                 return
     
