@@ -44,6 +44,7 @@ async def ble_discover(command, command_split):
     
     else: error_handler(command, command_split)
 
+#helper function for connection portal
 def scan(PORT, sock_data, sock, status):
     if status == 0:
         print(f"Port >>> {PORT} >>> {GREEN}{sock_data[str(status)]}{RESET}")
@@ -111,7 +112,6 @@ def connection_portal(command, command_split):
                 return
             
             PORT = int(command_split[2])
-
             if not port_valid(PORT):
                 print(f"{WARNING}Port Invalid{RESET} / (Not In Range 0-65535)")
                 sock.close()
@@ -166,10 +166,12 @@ def open_website(command, command_split):
             if status == 0:
                 print(f"Connection Succesful >>> {GREEN}Accessing Website{RESET} >>> {command_split[1]}")
                 webbrowser.open(command_split[1])
+                status.close()
                 return
 
             else: 
                 print(f"{WARNING}Connection Failed{RESET} / Unable To Open Website")
+                status.close()
                 return
         case _: 
             error_handler(command, command_split)
@@ -185,7 +187,7 @@ def environ_print(command, command_split):
         error_handler(command, command_split)
         return
 
-#check builtin commands
+#builtin commands checker
 def type_command(command, command_split):
     def file_check() -> bool:
         if type_file is not None:
@@ -255,7 +257,11 @@ def shell_history(command, command_split):
         print(f"{GREEN} >> Command History{RESET}")
         for element in history:
             print(f">> {element}")     
-    else: error_handler(command, command_split)
+    else: 
+        if command_split[1] == 'clear':
+            history.clear()
+            return
+        error_handler(command, command_split)
             
 #all usable commands
 commands = {
@@ -277,6 +283,7 @@ commands = {
 
 #executing commands
 def command_execute(current_directory):
+    MAX_TOKEN_LENGTH = 63
     sys.stdout.write(f"[{current_directory}]{GREEN} >> {RESET}")
 
     try:
@@ -290,8 +297,8 @@ def command_execute(current_directory):
             return
         
         for element in range(len(command_split)):
-            if len(command_split[element]) >= 63:
-                print(f"{WARNING}Command too long{RESET} => 63 (limit)")
+            if len(command_split[element]) >= MAX_TOKEN_LENGTH:
+                print(f"{WARNING}Command Too lLong{RESET} >> 63 (Limit)")
                 return
     
         if command_split[0] in commands:
@@ -306,11 +313,10 @@ def command_execute(current_directory):
     
 def main():
     try:
-        sock = socket.create_connection(('8.8.8.8', 53))
-        print(f"Initial Network Status >>> {GREEN}Online{RESET}")
-        sock.close()
+        with socket.create_connection(('8.8.8.8', 53)):
+            print(f"Initial Network Status >>> {GREEN}Online{RESET}")
     
-    except Exception:
+    except OSError:
         print(f"Initial Network Status >>> {WARNING}Offline{RESET}")
 
     date = datetime.datetime.now()
