@@ -50,8 +50,8 @@ def scan(PORT, sock_data, sock, status):
         print(f"Port >>> {PORT} >>> {GREEN}{sock_data[str(status)]}{RESET}")
     if status > 0: 
         print(f"Port >>> {PORT} >>> {WARNING}{sock_data[str(status)]}{RESET}")
-    sock.close()
     return
+    
 
 #connectivity tester and port scanner
 def connection_portal(command, command_split):
@@ -70,9 +70,9 @@ def connection_portal(command, command_split):
                 return
 
             print(f"{GREEN}Starting Scan From {command_split[2]} To {command_split[3]}{RESET}")
-            scanrange_minimum = int(command_split[2])
-            scanrange_maximum = int(command_split[3]) + 1
-            for port_iterator in range(scanrange_minimum, scanrange_maximum):
+            scanrange_min = int(command_split[2])
+            scanrange_max = int(command_split[3]) + 1
+            for port_iterator in range(scanrange_min, scanrange_max):
 
                 try:
                     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -82,14 +82,8 @@ def connection_portal(command, command_split):
                         LOCALHOST = '127.0.0.1' 
                         PORT = int(port_iterator)
 
-                        if PORT == int(maximum_port):
-                            print(f"{GREEN}Scan Succesful{RESET} >>> Returning")
-                            sock.close()
-                            return
-
                         if not port_valid(PORT):
                             print(f"{WARNING}Port ({port_iterator}) Invalid{RESET} (Not In Range)")
-                            sock.close()
                             return
                         
                         status = sock.connect_ex((LOCALHOST, PORT))
@@ -97,6 +91,7 @@ def connection_portal(command, command_split):
 
                 except KeyboardInterrupt: 
                     print(f"{WARNING}KeyboardInterrupt{RESET}")
+                    return
 
         else:   
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
