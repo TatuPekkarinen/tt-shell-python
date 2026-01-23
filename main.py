@@ -35,7 +35,7 @@ async def ble_discover(command, command_split):
             devices = await BleakScanner.discover()
             for device in devices:
                 print(f"{device}")
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.2)
 
         except asyncio.CancelledError: raise   
         except KeyboardInterrupt: 
@@ -44,79 +44,70 @@ async def ble_discover(command, command_split):
     
     else: error_handler(command, command_split)
 
-#helper function for connection portal
-def scan(PORT, sock_data, sock, status):
-    if status == 0:
-        print(f"Port >>> {PORT} >>> {GREEN}{sock_data[str(status)]}{RESET}")
-    if status > 0: 
-        print(f"Port >>> {PORT} >>> {WARNING}{sock_data[str(status)]}{RESET}")
-    return
-    
+#helper functions for connection portal
+def socketErrno_reader():
+    file_path = script_directory / 'socketErrno.json'
+    file = file_path.open('r')
+    sock_data = json.load(file)
+    return sock_data
 
-#connectivity tester and port scanner
-def connection_portal(command, command_split):
+def valid_range(PORT: int) -> bool:
     maximum_port = 65535
-    def port_valid(port: int) -> bool:
-        return 0 <= port <= maximum_port
+    return 0 <= PORT <= maximum_port
 
-    if len(command_split) > 2:
-        file_path = script_directory / 'socketErrno.json'
-        with file_path.open('r') as file:
-            sock_data = json.load(file)
+def socket_initialize(HOST, PORT):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.settimeout(5)
+        status = sock.connect_ex((HOST, PORT))
+        return status
 
-        if command_split[1] == 'range':
-            if len(command_split) <= 3:
-                print(f"{WARNING}Invalid Arguments{RESET} (3 Given >>> 4 Expected)")
+def scan_initialize(PORT, status):
+    sock_data = socketErrno_reader()
+    if status == 0:
+        print(f"Port >> {PORT} >> {GREEN}{sock_data[str(status)]}{RESET}")
+    if status > 0: 
+        print(f"Port >> {PORT} >> {WARNING}{sock_data[str(status)]}{RESET}")
+    return
+
+#connectivity tester and port scanner   
+def connection_portal(command, command_split):
+    match len(command_split):
+        case 4:
+            if command_split[1] == 'range':
+                print(f"{GREEN}Starting Scan From {command_split[2]} To {command_split[3]}{RESET}")
+                scanrange_min = int(command_split[2])
+                scanrange_max = int(command_split[3]) + 1
+
+                for port_iterator in range(scanrange_min, scanrange_max):
+                    #this address shouldn't be changed
+                    HOST = '127.0.0.1' 
+                    PORT = int(port_iterator)
+
+                    if not valid_range(PORT):
+                        print(f"{WARNING}Port ({port_iterator}) Invalid{RESET} (Not In Range)")
+                        return
+
+                    status = socket_initialize(HOST, PORT)
+                    scan_initialize(PORT, status)  
                 return
 
-            print(f"{GREEN}Starting Scan From {command_split[2]} To {command_split[3]}{RESET}")
-            scanrange_min = int(command_split[2])
-            scanrange_max = int(command_split[3]) + 1
-            for port_iterator in range(scanrange_min, scanrange_max):
-
-                try:
-                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                        sock.settimeout(0.5)
-
-                        #shouldn't be touched at all
-                        LOCALHOST = '127.0.0.1' 
-                        PORT = int(port_iterator)
-
-                        if not port_valid(PORT):
-                            print(f"{WARNING}Port ({port_iterator}) Invalid{RESET} (Not In Range)")
-                            return
-                        
-                        status = sock.connect_ex((LOCALHOST, PORT))
-                        scan(PORT, sock_data, sock, status)  
-
-                except KeyboardInterrupt: 
-                    print(f"{WARNING}KeyboardInterrupt{RESET}")
-                    return
-
-        else:   
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.settimeout(5)
-
-                try:
-                    HOST = socket.gethostbyname(str(command_split[1]))
-                except socket.gaierror: 
-                    print(f"{WARNING}socket.gaierror{RESET} / Unable To Open Website")
-                    return
-                
-                PORT = int(command_split[2])
-                if not port_valid(PORT):
-                    print(f"{WARNING}Port Invalid{RESET} / (Not In Range 0-65535)")
-                    sock.close()
-                    return
-                
-                print(f"{GREEN}Connnecting To {HOST} From {PORT}{RESET}")
-                status = sock.connect_ex((HOST, PORT))
-                scan(PORT, sock_data, sock, status) 
+        case 3:
+            try: HOST = socket.gethostbyname(str(command_split[1]))
+            except socket.gaierror: 
+                print(f"{WARNING}socket.gaierror{RESET} / Unable To Find Hostname")
+                return
+            
+            PORT = int(command_split[2])
+            if not valid_range(PORT):
+                print(f"{WARNING}Port Invalid{RESET} / (Not In Range 0-65535)")
+                return
+            
+            print(f"{GREEN}Connnecting To {HOST} From {PORT}{RESET}")
+            status = socket_initialize(HOST, PORT)
+            scan_initialize(PORT, status)  
             return
-
-    else: 
-        error_handler(command, command_split)
-        return
+            
+        case _: error_handler(command, command_split)
 
 #executing file
 def execute_file(command, command_split):
@@ -126,11 +117,11 @@ def execute_file(command, command_split):
     
     execute_path = shutil.which(command_split[1])
     if execute_path is None:
-        print(f"{WARNING}File Not Found{RESET} >>> ({command_split[1]})")
+        print(f"{WARNING}File Not Found{RESET} >> ({command_split[1]})")
         return
     
     if os.access(str(execute_path), os.X_OK):
-        print(f"{GREEN}Opening File{RESET} >>> ({execute_path})")
+        print(f"{GREEN}Opening File{RESET} >> ({execute_path})")
         time.sleep(1)
         subprocess.run(execute_path, check=True, shell=False)
         return
@@ -143,28 +134,25 @@ def execute_file(command, command_split):
 def open_website(command, command_split):
     match len(command_split):
         case 2:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(5)
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.settimeout(5)
 
-            HTTPS_PORT = 443
-            try: HOST = socket.gethostbyname(str(command_split[1]))
-            except socket.gaierror:
-                print(f"{WARNING}socket.gaierror{RESET} / Unable To Open Website")
-                return
-            
-            print(f"Connection Test >>> {GREEN}Connection To {HOST} From {HTTPS_PORT}{RESET}")
-            status = sock.connect_ex((HOST, HTTPS_PORT))
-
-            if status == 0:
-                print(f"Connection Succesful >>> {GREEN}Accessing Website{RESET} >>> {command_split[1]}")
-                webbrowser.open(command_split[1])
-                sock.close()
-                return
-
-            else: 
-                print(f"{WARNING}Connection Failed{RESET} / Unable To Open Website")
-                sock.close()
-                return
+                PORT = 443
+                try: HOST = socket.gethostbyname(str(command_split[1]))
+                except socket.gaierror:
+                    print(f"{WARNING}socket.gaierror{RESET} / Unable To Open Website")
+                    return
+                
+                print(f"Connection Test >> {GREEN}Connection To {HOST} From {PORT}{RESET}")
+                status = sock.connect_ex((HOST, PORT))
+                if status == 0:
+                    print(f"Connection Succesful >> {GREEN}Accessing Website{RESET} >> {command_split[1]}")
+                    webbrowser.open(command_split[1])
+                    return
+                
+                else: 
+                    print(f"{WARNING}Connection Failed{RESET} / Unable To Open Website")
+                    return
         case _: 
             error_handler(command, command_split)
             return
@@ -189,16 +177,16 @@ def type_command(command, command_split):
         case 2:
             type_file = shutil.which(command_split[1])
             if command_split[1] in commands:
-                print(f"{command_split[1]} >>> {commands.get(command_split[1])}")
+                print(f"{command_split[1]} >> {commands.get(command_split[1])}")
                 return
             if file_check() == True:
-                print(f"{command_split[1]} >>> {type_file}")
+                print(f"{command_split[1]} >> {type_file}")
                 return 
             else: 
                 error_handler(command, command_split)
                 return
         case _: 
-            print(f"{WARNING}Invalid Arguments{RESET} (1 given >>> 2 expected)")
+            print(f"{WARNING}Invalid Arguments{RESET} (1 given >> 2 expected)")
             return
 
 #change current working directory
@@ -210,10 +198,10 @@ def change_directory(command, command_split):
             os.chdir(script_directory)
             return
         if not os.path.exists(directory):
-            print(f"{WARNING}No Such Path{RESET} >>> {directory}")
+            print(f"{WARNING}No Such Path{RESET} >> {directory}")
             return
         if not os.path.isdir(directory):
-            print(f"{WARNING}No Such Directory{RESET} >>> {directory}")
+            print(f"{WARNING}No Such Directory{RESET} >> {directory}")
             return
         
         try: 
@@ -229,7 +217,7 @@ def change_directory(command, command_split):
 
 #external tool wrappers 
 def external_tools(command, command_split):
-    invalid_argument = lambda: print(f"{WARNING}subprocess.CalledProcessError (Invalid Arguments){RESET} >>> {command}")
+    invalid_argument = lambda: print(f"{WARNING}subprocess.CalledProcessError (Invalid Arguments){RESET} >> {command}")
     match command_split[0]:
         case 'curl' | 'git':
             try: 
@@ -285,12 +273,12 @@ def command_execute(current_directory):
         try: command_split = shlex.split(command) 
 
         except ValueError: 
-            print(f"Exception - {WARNING}ValueError{RESET} - {command}")
+            print(f"Exception >> {WARNING}ValueError{RESET} - {command}")
             return
         
         for element in range(len(command_split)):
             if len(command_split[element]) >= MAX_TOKEN_LENGTH:
-                print(f"{WARNING}Command Too lLong{RESET} >> 63 (Limit)")
+                print(f"{WARNING}Command Too Long{RESET} >> 63 (Limit)")
                 return
     
         if command_split[0] in commands:
@@ -306,10 +294,10 @@ def command_execute(current_directory):
 def main():
     try:
         with socket.create_connection(('8.8.8.8', 53)):
-            print(f"Initial Network Status >>> {GREEN}Online{RESET}")
+            print(f"Initial Network Status >> {GREEN}Online{RESET}")
     
     except OSError:
-        print(f"Initial Network Status >>> {WARNING}Offline{RESET}")
+        print(f"Initial Network Status >> {WARNING}Offline{RESET}")
 
     date = datetime.datetime.now()
     print(f"{TITLE1}tt-shell [{sys.argv[0]}]{RESET} / {TITLE2}{date}{RESET}")
